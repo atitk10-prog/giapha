@@ -269,12 +269,12 @@ export default function App() {
 
     if (type === 'json') {
       rawContent = JSON.stringify({ members, branches, events, fundTransactions, scholarships, documents }, null, 2);
-      fileTitle = "Gia_Pha_Backup_Nguyen_Van.json";
+      fileTitle = "Gia_Pha_Backup_Ho_Nguyen.json";
     } else if (type === 'csv') {
       rawContent = "Mã bạ, Họ tên, Giới tính, Đời, Năm sinh\n" + members.map(m => `${m.id}, ${m.fullName}, ${m.gender}, ${m.generation}, ${m.dob || 'Chưa rõ'}`).join('\n');
-      fileTitle = "Danh_Sa_Toan_Phai_Nguyen_Van.csv";
+      fileTitle = "Danh_Sa_Toan_Phai_Ho_Nguyen.csv";
     } else {
-      rawContent = `ĐẠI NIÊN GIÁM PHẢ CHÍ TỘC NGUYỄN VĂN\nNgày in phả chí: 2026-06-18\n` + 
+      rawContent = `ĐẠI NIÊN GIÁM PHẢ CHÍ TỘC HỌ NGUYỄN\nNgày in phả chí: 2026-06-18\n` + 
         `Tổng vương phả hệ: ${members.length} Đinh\n` +
         `Danh sách anh linh Tổ tiên truyền đời phụng tự:\n` +
         members.map(m => `- Cụ ${m.fullName} (${m.dob || 'Không rõ'} - ${m.isDeceased ? m.dod : 'Hưởng thọ an nhiên'}) đời thế ${m.generation}`).join('\n');
@@ -598,7 +598,7 @@ export default function App() {
             </div>
             <div>
               <span className="text-[9.5px] uppercase tracking-widest text-amber-700 dark:text-amber-400 font-bold font-mono">ĐẠI TỘC CHÍ VĂN HÓA</span>
-              <h1 className="text-sm font-black font-sans leading-none text-gray-900 dark:text-white">GIA PHẢ SỐ TỘC NGUYỄN VĂN</h1>
+              <h1 className="text-sm font-black font-sans leading-none text-gray-900 dark:text-white">GIA PHẢ SỐ TỘC HỌ NGUYỄN</h1>
             </div>
           </div>
 
