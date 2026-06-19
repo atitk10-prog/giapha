@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ClanMember, Gender, UserRole } from '../types';
+import { X, Sparkles, User, ShieldAlert, Check, Calendar, Phone, Mail, Award, BookOpen, Image as ImageIcon, Send, Users } from 'lucide-react';
 
 interface MemberProfileModalProps {
   member: ClanMember;
