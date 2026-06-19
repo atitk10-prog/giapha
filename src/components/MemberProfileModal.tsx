@@ -329,14 +329,27 @@ export default function MemberProfileModal({
                           className="w-full p-1.5 border border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-gray-500 mb-1">Tên Tự/Thường gọi</label>
-                        <input 
-                          type="text" 
-                          value={editedFields.nickname || ''} 
-                          onChange={e => setEditedFields(prev => ({ ...prev, nickname: e.target.value }))}
-                          className="w-full p-1.5 border border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded text-xs focus:outline-none"
-                        />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-1">Tên Tự/Thường gọi</label>
+                          <input 
+                            type="text" 
+                            value={editedFields.nickname || ''} 
+                            onChange={e => setEditedFields(prev => ({ ...prev, nickname: e.target.value }))}
+                            className="w-full p-1.5 border border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded text-xs focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-1">Giới tính</label>
+                          <select 
+                            value={editedFields.gender || Gender.MALE} 
+                            onChange={e => setEditedFields(prev => ({ ...prev, gender: e.target.value as Gender }))}
+                            className="w-full p-1.5 border border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded text-xs focus:outline-none"
+                          >
+                            <option value={Gender.MALE}>Nam giới</option>
+                            <option value={Gender.FEMALE}>Nữ giới</option>
+                          </select>
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
