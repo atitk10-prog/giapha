@@ -244,7 +244,7 @@ async function saveDatabaseState(state: any) {
       await sheets.spreadsheets.values.batchClear({
         spreadsheetId: GOOGLE_SPREADSHEET_ID,
         requestBody: {
-          ranges: ranges.map(r => `${r}!A:Z`)
+          ranges: ranges.map(r => `${r}!A:ZZ`)
         }
       });
 
