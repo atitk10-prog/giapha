@@ -759,6 +759,20 @@
       "action": "Xóa vĩnh viễn phả lục nhân thân",
       "target": "NV-004",
       "time": "2026-06-19T05:20:24.260Z"
+    },
+    {
+      "id": "LOG_1781849739100",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Đổi phiên vai trò người xem",
+      "target": "Trưởng chi",
+      "time": "2026-06-19T06:15:39.100Z"
+    },
+    {
+      "id": "LOG_1781849750092",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Đổi phiên vai trò người xem",
+      "target": "Khách",
+      "time": "2026-06-19T06:15:50.092Z"
     }
   ]
 }

@@ -28,8 +28,12 @@ const DATA_DIR = path.join(_dirname, "src", "data");
 const DATA_FILE = path.join(DATA_DIR, "family_data.json");
 
 // Ensure the data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!process.env.VERCEL && !fs.existsSync(DATA_DIR)) {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  } catch (e) {
+    console.warn("Could not create data directory", e);
+  }
 }
 
 // Google Sheets configuration
