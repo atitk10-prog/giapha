@@ -602,14 +602,14 @@ export default function App() {
             members={members} 
             selectedMemberId={selectedMemberId}
             onSelectMember={(id) => setSelectedMemberId(id)}
-            onAddMember={(id, type) => {
+            onAddMember={currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER ? ((id, type) => {
               const member = members.find(m => m.id === id);
               if (type === 'child') {
                 setAddingRelation({ parentId: id, parentName: member?.fullName });
               } else {
                 setAddingRelation({ spouseId: id, spouseName: member?.fullName });
               }
-            }}
+            }) : undefined}
           />
         );
     }
