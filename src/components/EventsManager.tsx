@@ -28,7 +28,9 @@ export default function EventsManager({
   onRegisterAttendance,
   currentUserEmail,
   currentUserRole,
-  onAddEvent
+  onAddEvent,
+  onUpdateEvent,
+  onDeleteEvent
 }: EventsManagerProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

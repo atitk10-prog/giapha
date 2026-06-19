@@ -27,7 +27,9 @@ const getCategoryLabel = (cat: string) => {
 export default function FundManager({
   transactions,
   currentUserRole,
-  onAddTransaction
+  onAddTransaction,
+  onUpdateTransaction,
+  onDeleteTransaction
 }: FundManagerProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

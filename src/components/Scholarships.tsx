@@ -16,7 +16,9 @@ const formatCurrency = (val: number) => CURRENCY_FORMATTER.format(val);
 export default function Scholarships({
   scholarships,
   currentUserRole,
-  onAddScholarship
+  onAddScholarship,
+  onUpdateScholarship,
+  onDeleteScholarship
 }: ScholarshipsProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
