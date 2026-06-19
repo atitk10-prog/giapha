@@ -65,7 +65,12 @@ export default function LibraryManager({
             return;
           }
           if (!res.ok) {
-            alert(`Lỗi máy chủ (${res.status}): Không thể tải tệp lên.`);
+            let errMsg = 'Không rõ nguyên nhân';
+            try {
+              const errData = await res.json();
+              errMsg = errData.error || errData.message || errMsg;
+            } catch (e) {}
+            alert(`Lỗi máy chủ (${res.status}): Không thể tải tệp lên. Chi tiết: ${errMsg}`);
             setIsUploading(false);
             return;
           }
@@ -118,7 +123,12 @@ export default function LibraryManager({
           return;
         }
         if (!res.ok) {
-          alert(`Lỗi máy chủ (${res.status}): Không thể tải tệp lên.`);
+          let errMsg = 'Không rõ nguyên nhân';
+          try {
+            const errData = await res.json();
+            errMsg = errData.error || errData.message || errMsg;
+          } catch (e) {}
+          alert(`Lỗi máy chủ (${res.status}): Không thể tải tệp lên. Chi tiết: ${errMsg}`);
           setIsUploading(false);
           return;
         }
