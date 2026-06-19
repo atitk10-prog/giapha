@@ -1,8 +1,8 @@
 import serverApp from '../server.js';
 
 // Handle possible ESM / CJS interop issues with default exports
-const app = (serverApp && typeof serverApp === 'object' && serverApp.default) 
-  ? serverApp.default 
+const app: any = (serverApp && typeof serverApp === 'object' && (serverApp as any).default) 
+  ? (serverApp as any).default 
   : serverApp;
 
 export default function(req: any, res: any) {
