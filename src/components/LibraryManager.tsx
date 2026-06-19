@@ -59,6 +59,16 @@ export default function LibraryManager({
         formData.append('files', selectedFiles[0]);
         try {
           const res = await fetch('/api/upload-document', { method: 'POST', body: formData });
+          if (res.status === 413) {
+            alert('Lỗi: Tệp quá lớn! Máy chủ Vercel chỉ cho phép tải lên tối đa 4.5 MB mỗi tệp. Vui lòng chia nhỏ tệp nén hoặc giảm dung lượng PDF.');
+            setIsUploading(false);
+            return;
+          }
+          if (!res.ok) {
+            alert(`Lỗi máy chủ (${res.status}): Không thể tải tệp lên.`);
+            setIsUploading(false);
+            return;
+          }
           const data = await res.json();
           if (data.success && data.files.length > 0) {
             fileUrl = data.files[0].url;
@@ -102,6 +112,16 @@ export default function LibraryManager({
 
       try {
         const res = await fetch('/api/upload-document', { method: 'POST', body: formData });
+        if (res.status === 413) {
+          alert('Lỗi: Tổng dung lượng các tệp quá lớn! Máy chủ Vercel chỉ cho phép tải lên tối đa 4.5 MB mỗi lần. Vui lòng tải từng tệp nhỏ gọn hơn.');
+          setIsUploading(false);
+          return;
+        }
+        if (!res.ok) {
+          alert(`Lỗi máy chủ (${res.status}): Không thể tải tệp lên.`);
+          setIsUploading(false);
+          return;
+        }
         const data = await res.json();
         if (data.success && data.files) {
           data.files.forEach((fileInfo: any, index: number) => {

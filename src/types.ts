@@ -89,9 +89,10 @@ export interface ClanDocument {
   id: string;
   name: string;
   category: 'gia phả' | 'tộc ước' | 'khuyến học' | 'nhà thờ' | 'khác';
-  fileType: 'pdf' | 'doc' | 'pdf-tree' | 'image';
+  fileType: 'pdf' | 'doc' | 'pdf-tree' | 'image' | 'zip' | 'other';
   size: string;
   url: string; // Mock or real Google Drive / local assets URL
+  downloadUrl?: string; // Real Google Drive download url
   downloadCount: number;
   updatedAt: string;
 }
