@@ -121,30 +121,42 @@ async function loadDatabaseState() {
   if (sheets && GOOGLE_SPREADSHEET_ID) {
     try {
       const ranges = ["Members", "Branches", "Events", "FundTransactions", "Scholarships", "Documents", "Albums", "Suggestions", "Logs", "Settings"];
-      const response = await sheets.spreadsheets.values.batchGet({
-        spreadsheetId: GOOGLE_SPREADSHEET_ID,
-        ranges: ranges,
-        valueRenderOption: "UNFORMATTED_VALUE"
-      });
       
-      const valueRanges = response.data.valueRanges;
-      if (valueRanges) {
-        // Chỉ cần lấy được dữ liệu từ Google Sheets (dù rỗng), ta coi đó là nguồn chính thống
-        const state: any = {};
-        let isCompletelyEmpty = true;
+      // 1. Get spreadsheet metadata to see which tabs actually exist
+      const spreadsheet = await sheets.spreadsheets.get({
+        spreadsheetId: GOOGLE_SPREADSHEET_ID
+      });
+      const existingTitles = spreadsheet.data.sheets.map((s: any) => s.properties.title);
+      
+      // 2. Only request ranges that exist to prevent 400 Bad Request errors
+      const validRanges = ranges.filter(r => existingTitles.includes(r));
+      
+      if (validRanges.length > 0) {
+        const response = await sheets.spreadsheets.values.batchGet({
+          spreadsheetId: GOOGLE_SPREADSHEET_ID,
+          ranges: validRanges,
+          valueRenderOption: "UNFORMATTED_VALUE"
+        });
         
-        for (let i = 0; i < ranges.length; i++) {
-           const rangeName = ranges[i];
-           const stateKey = rangeName.charAt(0).toLowerCase() + rangeName.slice(1);
-           const values = valueRanges[i].values || [];
-           if (values.length > 0) isCompletelyEmpty = false;
-           state[stateKey] = parseFromSheet(values);
+        const valueRanges = response.data.valueRanges;
+        if (valueRanges) {
+          const state: any = {};
+          
+          for (let i = 0; i < validRanges.length; i++) {
+             const rangeName = validRanges[i];
+             const stateKey = rangeName.charAt(0).toLowerCase() + rangeName.slice(1);
+             const values = valueRanges[i].values || [];
+             state[stateKey] = parseFromSheet(values);
+          }
+          
+          // Điền mảng rỗng cho các tab chưa được tạo trên Google Sheets
+          for (const rangeName of ranges) {
+             const stateKey = rangeName.charAt(0).toLowerCase() + rangeName.slice(1);
+             if (!state[stateKey]) state[stateKey] = [];
+          }
+          
+          return state;
         }
-        
-        // Nếu tất cả các sheet đều rỗng hoàn toàn (chưa từng khởi tạo), ta có thể chọn khởi tạo mặc định.
-        // Tuy nhiên, người dùng đang phàn nàn là "xóa hết thì bị quay lại ban đầu". 
-        // Do đó, ta luôn trả về state hiện tại, vì lúc xóa xong nó đã lưu [[]] lên sheet.
-        return state;
       }
     } catch (e: any) {
       console.error("Error reading from Google Sheets (Option B), falling back to local JSON", e.message);
@@ -198,6 +210,27 @@ async function saveDatabaseState(state: any) {
   if (sheets && GOOGLE_SPREADSHEET_ID) {
     try {
       const ranges = ["Members", "Branches", "Events", "FundTransactions", "Scholarships", "Documents", "Albums", "Suggestions", "Logs", "Settings"];
+      
+      // 1. Get spreadsheet metadata to check for missing tabs
+      const spreadsheet = await sheets.spreadsheets.get({
+        spreadsheetId: GOOGLE_SPREADSHEET_ID
+      });
+      const existingTitles = spreadsheet.data.sheets.map((s: any) => s.properties.title);
+      const missingRanges = ranges.filter(r => !existingTitles.includes(r));
+      
+      // 2. Auto-create missing tabs (e.g. 'Settings')
+      if (missingRanges.length > 0) {
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId: GOOGLE_SPREADSHEET_ID,
+          requestBody: {
+            requests: missingRanges.map((r: string) => ({
+              addSheet: { properties: { title: r } }
+            }))
+          }
+        });
+      }
+
+      // 3. Prepare data for all ranges
       const data = [];
       for (const rangeName of ranges) {
         const stateKey = rangeName.charAt(0).toLowerCase() + rangeName.slice(1);
@@ -207,7 +240,7 @@ async function saveDatabaseState(state: any) {
         });
       }
 
-      // Xóa dữ liệu cũ trước khi ghi đè để tránh rác nếu số dòng giảm
+      // 4. Xóa dữ liệu cũ trước khi ghi đè để tránh rác nếu số dòng giảm
       await sheets.spreadsheets.values.batchClear({
         spreadsheetId: GOOGLE_SPREADSHEET_ID,
         requestBody: {
@@ -215,6 +248,7 @@ async function saveDatabaseState(state: any) {
         }
       });
 
+      // 5. Ghi dữ liệu mới
       await sheets.spreadsheets.values.batchUpdate({
         spreadsheetId: GOOGLE_SPREADSHEET_ID,
         requestBody: {
