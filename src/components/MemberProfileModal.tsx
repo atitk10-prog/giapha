@@ -346,6 +346,16 @@ export default function MemberProfileModal({
                           />
                         </div>
                         <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-1">Thứ tự sinh (1: Cả, 2: Thứ 2...)</label>
+                          <input 
+                            type="number" 
+                            value={editedFields.birthOrder || ''} 
+                            onChange={e => setEditedFields(prev => ({ ...prev, birthOrder: e.target.value ? parseInt(e.target.value) : undefined }))}
+                            className="w-full p-1.5 border border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded text-xs focus:outline-none"
+                            placeholder="Để trống nếu chưa rõ"
+                          />
+                        </div>
+                        <div>
                           <label className="block text-[10px] font-bold text-gray-500 mb-1">Năm mất (nếu có)</label>
                           <input 
                             type="text" 
@@ -443,6 +453,10 @@ export default function MemberProfileModal({
                       <div>
                         <span className="text-gray-500 block">Học vị khóa bảng:</span>
                         <strong className="text-gray-900 dark:text-zinc-100">{member.education || 'Tự học khoa thi'}</strong>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block">Thứ tự sinh:</span>
+                        <strong className="text-gray-900 dark:text-zinc-100">{member.birthOrder ? (member.birthOrder === 1 ? 'Con Cả' : member.birthOrder === 10 ? 'Con Út' : `Con thứ ${member.birthOrder}`) : 'Chưa cập nhật'}</strong>
                       </div>
                       <div>
                         <span className="text-gray-500 block">Phân cư cư trú:</span>

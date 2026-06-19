@@ -7,6 +7,8 @@ interface AddMemberModalProps {
   spouseId?: string;
   parentName?: string;
   spouseName?: string;
+  parentGender?: Gender;
+  parentSpouses?: ClanMember[];
   onClose: () => void;
   onSave: (newMember: ClanMember) => void;
   currentBranchId: string;
@@ -17,15 +19,21 @@ export default function AddMemberModal({
   spouseId, 
   parentName, 
   spouseName, 
+  parentGender,
+  parentSpouses,
   onClose, 
   onSave, 
   currentBranchId 
 }: AddMemberModalProps) {
+  const defaultSpouseId = parentSpouses && parentSpouses.length > 0 ? parentSpouses[0].id : '';
+  const [selectedSpouseId, setSelectedSpouseId] = useState(defaultSpouseId);
+
   const [formData, setFormData] = useState({
     fullName: '',
     nickname: '',
     gender: spouseId ? (spouseName ? '' : Gender.FEMALE) : Gender.MALE,
     dob: '',
+    birthOrder: '',
     isDeceased: false,
     dod: '',
     burialPlace: '',
@@ -101,8 +109,10 @@ export default function AddMemberModal({
       phone: formData.phone,
       email: formData.email,
       avatarUrl: formData.avatarUrl,
-      fatherId: parentId || null,
+      fatherId: spouseId ? null : (parentId ? (parentGender === Gender.MALE ? parentId : (selectedSpouseId || null)) : null),
+      motherId: spouseId ? null : (parentId ? (parentGender === Gender.FEMALE ? parentId : (selectedSpouseId || null)) : null),
       spouseId: spouseId || null,
+      birthOrder: formData.birthOrder ? parseInt(formData.birthOrder) : undefined,
     };
 
     onSave(newMember);
@@ -131,7 +141,24 @@ export default function AddMemberModal({
               <Link2 className="w-4 h-4 shrink-0" />
               {spouseId 
                 ? <span>Kết hôn với: <strong className="font-semibold">{spouseName || 'Thành viên'}</strong></span>
-                : <span>Con của: <strong className="font-semibold">{parentName || 'Thành viên'}</strong></span>
+                : <div className="flex flex-col gap-1 w-full">
+                    <span>Con của: <strong className="font-semibold">{parentName || 'Thành viên'}</strong></span>
+                    {parentSpouses && parentSpouses.length > 0 && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs">{parentGender === Gender.MALE ? 'Chọn Mẹ:' : 'Chọn Cha:'}</span>
+                        <select 
+                          className="px-2 py-1 bg-white dark:bg-zinc-800 border border-amber-200 dark:border-zinc-700 rounded text-xs"
+                          value={selectedSpouseId}
+                          onChange={e => setSelectedSpouseId(e.target.value)}
+                        >
+                          {parentSpouses.map(sp => (
+                            <option key={sp.id} value={sp.id}>{sp.fullName}</option>
+                          ))}
+                          <option value="">Chưa rõ / Khuyết</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
               }
             </div>
 
@@ -199,6 +226,31 @@ export default function AddMemberModal({
                   />
                 </div>
               </div>
+
+              {!spouseId && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
+                    Thứ tự sinh (Con thứ mấy)
+                  </label>
+                  <select 
+                    className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all"
+                    value={formData.birthOrder}
+                    onChange={e => setFormData({...formData, birthOrder: e.target.value})}
+                  >
+                    <option value="">-- Chưa rõ --</option>
+                    <option value="1">Con Cả (Thứ 1)</option>
+                    <option value="2">Con Thứ 2</option>
+                    <option value="3">Con Thứ 3</option>
+                    <option value="4">Con Thứ 4</option>
+                    <option value="5">Con Thứ 5</option>
+                    <option value="6">Con Thứ 6</option>
+                    <option value="7">Con Thứ 7</option>
+                    <option value="8">Con Thứ 8</option>
+                    <option value="9">Con Thứ 9</option>
+                    <option value="10">Con Út</option>
+                  </select>
+                </div>
+              )}
 
               <div className="flex flex-col justify-center">
                 <label className="flex items-center gap-2 cursor-pointer mt-6">

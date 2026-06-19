@@ -16,6 +16,7 @@ export interface ClanMember {
   nickname?: string;
   gender: Gender;
   generation: number; // Đời thứ mấy
+  birthOrder?: number; // Thứ tự sinh (1: Cả, 2: Thứ hai, v.v.)
   branchId: string; // ID of the branch (chi họ)
   phone?: string;
   email?: string;

@@ -130,7 +130,11 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
       const childMembers = members.filter(m => 
         (m.fatherId && allParentIds.has(m.fatherId)) || 
         (m.motherId && allParentIds.has(m.motherId))
-      );
+      ).sort((a, b) => {
+        const orderA = a.birthOrder !== undefined ? a.birthOrder : Infinity;
+        const orderB = b.birthOrder !== undefined ? b.birthOrder : Infinity;
+        return orderA - orderB;
+      });
 
       // Map children to their primary identity (if they have spouses, we only link to the primary of their unit)
       const childPrimaryIds = childMembers.map(c => {
