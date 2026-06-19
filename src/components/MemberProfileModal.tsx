@@ -233,19 +233,24 @@ export default function MemberProfileModal({
                         <tbody>
                           <tr className="border-b border-amber-100 dark:border-zinc-800">
                             <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500 w-1/3">Người Đời thứ {member.generation + 2}:</td>
-                            <td className="p-2 font-semibold text-amber-800 dark:text-amber-300">Gọi là <b>Ông / Bà</b> (Ông trẻ, Bà họ)</td>
+                            <td className="p-2 text-amber-800 dark:text-amber-300">Gọi là <b>Ông / Bà</b> (Ông trẻ, Bà họ)</td>
                           </tr>
                           <tr className="border-b border-amber-100 dark:border-zinc-800">
                             <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {member.generation + 1}:</td>
-                            <td className="p-2 font-semibold text-amber-800 dark:text-amber-300">Gọi là <b>Bác / Chú / Cô</b></td>
+                            <td className="p-2 text-amber-800 dark:text-amber-300">
+                              <div className="mb-1">Họ nội: <b>Bác</b> (Anh/chị của cha), <b>Chú</b> (Em trai cha), <b>Cô</b> (Em gái cha), <b>Thím</b> (Vợ chú), <b>Dượng</b> (Chồng cô).</div>
+                              <div>Họ ngoại: <b>Cậu</b> (Anh/em trai mẹ), <b>Dì</b> (Chị/em gái mẹ), <b>Mợ</b> (Vợ cậu), <b>Dượng</b> (Chồng dì).</div>
+                            </td>
                           </tr>
                           <tr className="border-b border-amber-100 dark:border-zinc-800">
                             <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {member.generation}:</td>
-                            <td className="p-2 font-semibold text-amber-800 dark:text-amber-300">Gọi là <b>Anh / Chị / Em họ</b></td>
+                            <td className="p-2 text-amber-800 dark:text-amber-300">
+                              Gọi là <b>Anh / Chị họ</b> (Nếu cha mẹ người này lớn tuổi hơn cha mẹ bạn) hoặc <b>Em họ</b> (Nếu cha mẹ người này nhỏ tuổi hơn).
+                            </td>
                           </tr>
                           <tr>
                             <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {Math.max(1, member.generation - 1)}:</td>
-                            <td className="p-2 font-semibold text-amber-800 dark:text-amber-300">Giao tiếp xưng <b>Cháu</b> (Cháu họ)</td>
+                            <td className="p-2 text-amber-800 dark:text-amber-300">Giao tiếp xưng <b>Cháu</b> (Cháu họ)</td>
                           </tr>
                         </tbody>
                       </table>
