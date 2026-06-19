@@ -40,6 +40,9 @@ export default function MemberProfileModal({
   const [directEditMode, setDirectEditMode] = useState(false);
   const [editedFields, setEditedFields] = useState<Partial<ClanMember>>({});
 
+  const potentialFathers = allMembers.filter(m => m.gender === Gender.MALE && (m.generation === member.generation - 1 || m.id === editedFields.fatherId));
+  const potentialMothers = allMembers.filter(m => m.gender === Gender.FEMALE && (m.generation === member.generation - 1 || m.id === editedFields.motherId));
+
   // Resolve immediate relatives
   const father = member.fatherId ? allMembers.find(m => m.id === member.fatherId) : null;
   const mother = member.motherId ? allMembers.find(m => m.id === member.motherId) : null;
@@ -363,6 +366,34 @@ export default function MemberProfileModal({
                             onChange={e => setEditedFields(prev => ({ ...prev, dod: e.target.value, isDeceased: !!e.target.value }))}
                             className="w-full p-1.5 border border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded text-xs focus:outline-none"
                           />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-1">Thân phụ / Cha</label>
+                          <select 
+                            value={editedFields.fatherId || ''} 
+                            onChange={e => setEditedFields(prev => ({ ...prev, fatherId: e.target.value || null }))}
+                            className="w-full p-1.5 border border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded text-xs focus:outline-none"
+                          >
+                            <option value="">-- Chưa rõ --</option>
+                            {potentialFathers.map(f => (
+                              <option key={f.id} value={f.id}>{f.fullName} (Đời {f.generation})</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-1">Mẫu thân / Mẹ</label>
+                          <select 
+                            value={editedFields.motherId || ''} 
+                            onChange={e => setEditedFields(prev => ({ ...prev, motherId: e.target.value || null }))}
+                            className="w-full p-1.5 border border-gray-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded text-xs focus:outline-none"
+                          >
+                            <option value="">-- Chưa rõ --</option>
+                            {potentialMothers.map(m => (
+                              <option key={m.id} value={m.id}>{m.fullName} (Đời {m.generation})</option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                       <div>
