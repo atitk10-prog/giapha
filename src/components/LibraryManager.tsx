@@ -6,6 +6,8 @@ interface LibraryProps {
   documents: ClanDocument[];
   currentUserRole: UserRole;
   onAddDocument?: (doc: ClanDocument) => void;
+  onUpdateDocument?: (doc: ClanDocument) => void;
+  onDeleteDocument?: (id: string) => void;
   onIncrementDownloads?: (docId: string) => void;
 }
 
@@ -13,8 +15,12 @@ export default function LibraryManager({
   documents,
   currentUserRole,
   onAddDocument,
+  onUpdateDocument,
+  onDeleteDocument,
   onIncrementDownloads
 }: LibraryProps) {
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFolder, setSelectedFolder] = useState<'ALL' | 'gia phả' | 'tộc ước' | 'khuyến học' | 'nhà thờ'>('ALL');
   
@@ -34,7 +40,19 @@ export default function LibraryManager({
     e.preventDefault();
     if (!docName) return;
 
-    if (onAddDocument) {
+    if (editingId && onUpdateDocument) {
+      onUpdateDocument({
+        id: editingId,
+        name: docName.endsWith('.pdf') || docName.endsWith('.doc') ? docName : `${docName}.pdf`,
+        category: category === 'khác' ? 'nhà thờ' : category, // Safe mapping
+        fileType: docName.endsWith('.doc') ? 'doc' : 'pdf',
+        size: fileSize,
+        url: '#',
+        downloadCount: documents.find(d => d.id === editingId)?.downloadCount || 0,
+        updatedAt: new Date().toISOString().split('T')[0]
+      });
+      alert('Đã cập nhật thông tin tài liệu thành công!');
+    } else if (onAddDocument) {
       onAddDocument({
         id: `DOC_${Date.now()}`,
         name: docName.endsWith('.pdf') || docName.endsWith('.doc') ? docName : `${docName}.pdf`,
@@ -46,7 +64,25 @@ export default function LibraryManager({
         updatedAt: new Date().toISOString().split('T')[0]
       });
       alert('Đã tải lên tệp phả hệ lưu trữ thành công lên Google Drive dòng họ!');
-      setDocName('');
+    }
+    
+    setDocName('');
+    setShowAddForm(false);
+    setEditingId(null);
+  };
+
+  const handleEdit = (doc: ClanDocument) => {
+    setDocName(doc.name);
+    setCategory(doc.category as any);
+    setFileSize(doc.size);
+    setEditingId(doc.id);
+    setShowAddForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa tài liệu này khỏi thư viện dòng họ không?') && onDeleteDocument) {
+      onDeleteDocument(id);
     }
   };
 
@@ -160,16 +196,28 @@ export default function LibraryManager({
                     📥 {doc.downloadCount} lượt tải
                   </span>
                   
-                  <button type="button"
-                    onClick={() => {
-                      if (onIncrementDownloads) onIncrementDownloads(doc.id);
-                      alert(`Đang tải tệp tin "${doc.name}" xuống máy từ thư mục Google Drive của dòng tộc...`);
-                    }}
-                    className="p-1.5 rounded-lg bg-gray-50 hover:bg-amber-100 text-gray-500 hover:text-amber-800 dark:bg-zinc-800 dark:hover:bg-amber-950 transition-all border mt-2 active:scale-95"
-                    title="Mở tài liệu / Tải về Máy"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                  </button>
+                  <div className="flex gap-1 mt-2 justify-end">
+                    {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
+                      <>
+                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(doc); }} className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-all border border-blue-100 active:scale-95" title="Sửa thông tin">
+                          <span className="text-[10px] font-bold">Sửa</span>
+                        </button>
+                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(doc.id); }} className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-all border border-red-100 active:scale-95" title="Xóa tài liệu">
+                          <span className="text-[10px] font-bold">Xóa</span>
+                        </button>
+                      </>
+                    )}
+                    <button type="button"
+                      onClick={() => {
+                        if (onIncrementDownloads) onIncrementDownloads(doc.id);
+                        alert(`Đang tải tệp tin "${doc.name}" xuống máy từ thư mục Google Drive của dòng tộc...`);
+                      }}
+                      className="p-1.5 rounded-lg bg-gray-50 hover:bg-amber-100 text-gray-500 hover:text-amber-800 dark:bg-zinc-800 dark:hover:bg-amber-950 transition-all border active:scale-95"
+                      title="Mở tài liệu / Tải về Máy"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -184,10 +232,23 @@ export default function LibraryManager({
           {/* Admin Direct Drag-and-Upload Tool */}
           {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
             <div className="pt-6 border-t border-dashed">
+              {!showAddForm && (
+                <div className="flex justify-end mb-4">
+                  <button type="button" onClick={() => setShowAddForm(true)} className="px-3.5 py-2 text-xs font-bold rounded-xl bg-amber-700 hover:bg-amber-800 text-white flex items-center gap-1 shadow hover:scale-95 transition-all">
+                    <Plus className="h-4 w-4" /> Tải lên tài liệu mới
+                  </button>
+                </div>
+              )}
+              {showAddForm && (
               <form onSubmit={handleSubmit} className="p-4 bg-amber-50/10 dark:bg-zinc-950/50 border border-amber-200/50 rounded-2xl space-y-3.5">
-                <span className="text-[11px] font-bold text-amber-800 dark:text-amber-400 block uppercase tracking-wider flex items-center gap-1">
-                  <UploadCloud className="h-4.5 w-4.5 text-amber-700" /> TỦ ĐỰNG TÀI LIỆU DÒNG TỘC (MÔ PHỎNG GOOGLE DRIVE)
-                </span>
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold text-amber-800 dark:text-amber-400 block uppercase tracking-wider flex items-center gap-1">
+                    <UploadCloud className="h-4.5 w-4.5 text-amber-700" /> {editingId ? 'CẬP NHẬT TÀI LIỆU LƯU TRỮ' : 'TỦ ĐỰNG TÀI LIỆU DÒNG TỘC (MÔ PHỎNG GOOGLE DRIVE)'}
+                  </span>
+                  <button type="button" onClick={() => { setShowAddForm(false); setEditingId(null); setDocName(''); }} className="text-xs text-gray-500 hover:text-red-500 px-2 py-1 bg-gray-100 rounded-lg">
+                    Hủy
+                  </button>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div className="sm:col-span-1">
@@ -233,10 +294,11 @@ export default function LibraryManager({
                     type="submit"
                     className="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow flex items-center gap-1 active:scale-95 transition-transform"
                   >
-                    <Plus className="h-4 w-4" /> Tải lên Lưu Thư Quán dòng họ
+                    <Plus className="h-4 w-4" /> {editingId ? 'Cập nhật tài liệu' : 'Tải lên Lưu Thư Quán dòng họ'}
                   </button>
                 </div>
               </form>
+              )}
             </div>
           )}
 

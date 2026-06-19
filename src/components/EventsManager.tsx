@@ -41,6 +41,18 @@ export default function EventsManager({
   const [category, setCategory] = useState<'giỗ tổ' | 'họp họ' | 'khuyến học' | 'tang lễ' | 'cưới hỏi' | 'khác'>('giỗ tổ');
   const [dateSolar, setDateSolar] = useState('');
   const [dateLunar, setDateLunar] = useState('');
+
+  const getLunarDateString = (solarDateStr: string) => {
+    if (!solarDateStr) return '';
+    try {
+      const d = new Date(solarDateStr);
+      if (isNaN(d.getTime())) return '';
+      const lunarStr = new Intl.DateTimeFormat('vi-VN-u-ca-chinese', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+      return lunarStr.charAt(0).toUpperCase() + lunarStr.slice(1);
+    } catch {
+      return '';
+    }
+  };
   const [location, setLocation] = useState('');
   const [host, setHost] = useState('');
 
@@ -180,7 +192,11 @@ export default function EventsManager({
               <input
                 type="date"
                 value={dateSolar}
-                onChange={e => setDateSolar(e.target.value)}
+                onChange={e => {
+                  setDateSolar(e.target.value);
+                  const lunar = getLunarDateString(e.target.value);
+                  if (lunar) setDateLunar(lunar);
+                }}
                 required
                 className="w-full p-2 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none dark:text-zinc-100"
               />
@@ -259,8 +275,8 @@ export default function EventsManager({
                     </span>
                     {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
                       <div className="flex gap-1">
-                        <button onClick={() => handleEdit(event)} className="text-[9px] px-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">Sửa</button>
-                        <button onClick={() => handleDelete(event.id)} className="text-[9px] px-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200">Xóa</button>
+                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(event); }} className="text-[9px] px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">Sửa</button>
+                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(event.id); }} className="text-[9px] px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">Xóa</button>
                       </div>
                     )}
                   </div>

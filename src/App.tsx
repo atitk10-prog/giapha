@@ -532,16 +532,26 @@ export default function App() {
 
   // Sổ vàng vinh danh khuyến học document upload
   const handleAddDocument = (doc: ClanDocument) => {
-    const updatedDocs = [...documents, doc];
+    const updatedDocs = [doc, ...documents];
     setDocuments(updatedDocs);
-    const updatedLogs = handleAddLog(`Tải lên tài liệu Google Drive mới`, doc.name, true);
+    const updatedLogs = handleAddLog('Tải lên tài liệu dòng tộc', doc.name, true);
+    pushStateUpdate({ members, branches, events, fundTransactions, scholarships, documents: updatedDocs, suggestions, logs: updatedLogs });
+  };
 
-    pushStateUpdate({
-      members, branches, events, fundTransactions, scholarships,
-      documents: updatedDocs,
-      suggestions, 
-      logs: updatedLogs
-    });
+  const handleUpdateDocument = (updatedDoc: ClanDocument) => {
+    const updatedDocs = documents.map(d => d.id === updatedDoc.id ? updatedDoc : d);
+    setDocuments(updatedDocs);
+    const updatedLogs = handleAddLog('Cập nhật tài liệu', updatedDoc.name, true);
+    pushStateUpdate({ members, branches, events, fundTransactions, scholarships, documents: updatedDocs, suggestions, logs: updatedLogs });
+  };
+
+  const handleDeleteDocument = (id: string) => {
+    const doc = documents.find(d => d.id === id);
+    if (!doc) return;
+    const updatedDocs = documents.filter(d => d.id !== id);
+    setDocuments(updatedDocs);
+    const updatedLogs = handleAddLog('Xóa tài liệu lưu trữ', doc.name, true);
+    pushStateUpdate({ members, branches, events, fundTransactions, scholarships, documents: updatedDocs, suggestions, logs: updatedLogs });
   };
 
   // Check AI duplicates dynamically using Express + Gemini
@@ -625,6 +635,8 @@ export default function App() {
             documents={documents} 
             currentUserRole={currentUserRole}
             onAddDocument={handleAddDocument}
+            onUpdateDocument={handleUpdateDocument}
+            onDeleteDocument={handleDeleteDocument}
             onIncrementDownloads={handleIncrementDownloads}
           />
         );

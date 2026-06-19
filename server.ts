@@ -89,6 +89,13 @@ function parseFromSheet(rows: any[]) {
       if (typeof val === "string" && val.startsWith("'0")) {
         val = val.substring(1);
       }
+      // If it's a serial date number from Google Sheets (usually > 40000 for dates in the 2000s)
+      if (typeof val === "number" && val > 30000 && val < 70000 && 
+          (keys[j].toLowerCase().includes('date') || keys[j] === 'dob' || keys[j] === 'dod')) {
+        // Excel serial date starting from 1899-12-30 (offset is 25569 days to 1970-01-01)
+        const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+        val = date.toISOString().split('T')[0];
+      }
       item[keys[j]] = val;
     }
     items.push(item);

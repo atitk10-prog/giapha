@@ -447,7 +447,7 @@ export const initialEvents: ClanEvent[] = [
     description: 'Họp quyết toán niên độ, lập báo cáo tu bổ lăng tự dòng tộc và trao học bổng khuyến tài cho học sinh giỏi đạt giải cấp tỉnh trở lên.',
     category: 'khuyến học',
     dateSolar: '2026-07-25',
-    dateLunar: 'Ngày 12 tháng 6 Âm Lịch',
+    dateLunar: 'Mùng 5 tháng 5 Âm Lịch',
     location: 'Sân trung tâm Từ Đường họ, Đồng Trường, Xã Trà My, TP. Đà Nẵng',
     host: 'Trưởng chi Nguyễn Nam Sơn',
     attendees: ['atnguyen.skayer@gmail.com']
