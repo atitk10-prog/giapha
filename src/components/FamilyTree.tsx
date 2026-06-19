@@ -562,7 +562,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
 
                         {/* Role Badge */}
                         <g transform={`translate(0, -50)`}>
-                          <rect x="-35" y="0" width="70" height="20" rx="10" className={isBloodline ? "fill-amber-500" : "fill-pink-500"} />
+                          <rect x="-35" y="0" width="70" height="20" rx="10" className={isBloodline ? "fill-amber-500" : (member.gender === Gender.MALE ? "fill-indigo-500" : "fill-pink-500")} />
                           <text x="0" y="14" textAnchor="middle" className="font-sans text-[10px] font-bold fill-white tracking-wider">{roleLabel}</text>
                         </g>
 
