@@ -429,12 +429,15 @@ Nhiệm vụ của bạn:
 
   try {
     let textResult = "";
+    let isDuplicate = false;
     if (ai) {
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash",
         contents: prompt
       });
       textResult = response.text || "Không thể phân tích dữ liệu lúc này.";
+      const lowerText = textResult.toLowerCase();
+      isDuplicate = !lowerText.includes("không phát hiện trùng lặp") && !lowerText.includes("không phát hiện trường hợp nào") && !lowerText.includes("không tìm thấy");
     } else {
       // Simulation backup if API Key is not set
       const searchName = memberName.toLowerCase();
@@ -445,11 +448,13 @@ Nhiệm vụ của bạn:
       if (matches.length > 0) {
         textResult = `### [Mô Phỏng] Phát hiện ${matches.length} thành viên trùng tên nghi vấn:
 ${matches.map((m: any) => `- **${m.fullName}** (ID: ${m.id}, Sinh: ${m.dob || "Chưa rõ"}, Chi: ${m.branchId}) - Trùng khớp tên khoảng **85%**. Khuyến nghị kiểm tra kỹ đời và quan hệ cha mẹ để tránh trùng lặp ghi bạ.`).join("\n")}`;
+        isDuplicate = true;
       } else {
         textResult = "### [Mô Phỏng] Không phát hiện trùng lặp phả hệ nào khả nghi. Bạn có thể an tâm thêm thành viên này vào sơ đồ tộc.";
+        isDuplicate = false;
       }
     }
-    res.json({ analysis: textResult });
+    res.json({ analysis: textResult, isDuplicate });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

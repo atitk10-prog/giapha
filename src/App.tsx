@@ -510,7 +510,7 @@ export default function App() {
         })
       });
       const data = await res.json();
-      if (data.analysis) {
+      if (data.isDuplicate) {
         setAiDuplicateAlerts(prev => [
           ...prev, 
           `Cảnh báo AI phát hiện trùng lặp cho $[${newM.fullName}]: ` + data.analysis
