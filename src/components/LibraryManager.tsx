@@ -50,7 +50,14 @@ export default function LibraryManager({
             body: JSON.stringify(payload),
             headers: { "Content-Type": "text/plain;charset=utf-8" }
           });
-          const data = await res.json();
+          const text = await res.text();
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch (e) {
+            console.error("GAS Response was not JSON:", text);
+            return reject(new Error("Lỗi đọc dữ liệu từ máy chủ: " + text.substring(0, 100)));
+          }
           if (data.success) {
             resolve(data);
           } else {
