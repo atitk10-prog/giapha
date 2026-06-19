@@ -248,13 +248,13 @@ async function sendTelegramNotification(message: string) {
 
 // API Routes
 // 1. Core data retrieval helper
-app.get("/api/family-data", async (req, res) => {
+app.get(["/api/family-data", "/family-data"], async (req, res) => {
   const state = await loadDatabaseState();
   res.json(state);
 });
 
 // 2. Core data update helper
-app.post("/api/family-data", async (req, res) => {
+app.post(["/api/family-data", "/family-data"], async (req, res) => {
   try {
     const updatedState = req.body;
     if (!updatedState.members || !updatedState.branches) {
@@ -416,8 +416,8 @@ ${candidates.map((c: any) => `- **Cụ ${c.fullName}** (Đời ${c.generation}, 
   }
 });
 
-// 5. AI generate elegant biography
-app.post("/api/ai/generate-biography", async (req, res) => {
+// 5. AI generate biography
+app.post(["/api/ai/generate-biography", "/ai/generate-biography"], async (req, res) => {
   const { member } = req.body;
   if (!member) {
     return res.status(400).json({ error: "Thiếu dữ liệu thành viên" });
