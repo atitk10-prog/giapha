@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { ClanMember, Gender, UserRole } from '../types';
-import { X, Sparkles, User, ShieldAlert, Check, Calendar, Phone, Mail, Award, BookOpen, Image as ImageIcon, Send, Users } from 'lucide-react';
-import { calculateKinship } from '../utils/kinship';
 
 interface MemberProfileModalProps {
   member: ClanMember;
@@ -40,9 +38,6 @@ export default function MemberProfileModal({
   // direct edit fields (for Admin or Branch Leader)
   const [directEditMode, setDirectEditMode] = useState(false);
   const [editedFields, setEditedFields] = useState<Partial<ClanMember>>({});
-
-  // Kinship state
-  const [myMemberId, setMyMemberId] = useState(() => localStorage.getItem('myClanMemberId') || '');
 
   const potentialFathers = allMembers.filter(m => m.gender === Gender.MALE && (m.generation === member.generation - 1 || m.id === editedFields.fatherId));
   const potentialMothers = allMembers.filter(m => m.gender === Gender.FEMALE && (m.generation === member.generation - 1 || m.id === editedFields.motherId));
@@ -222,37 +217,38 @@ export default function MemberProfileModal({
           {/* TAB 1: INFO PANEL */}
           {activeTab === 'info' && (
             <div className="space-y-6">
-              {/* Kinship Calculator Box */}
+              {/* Kinship Static Table Box */}
               <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-full text-amber-700 dark:text-amber-400">
                     <Users className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100 mb-1">Cách gọi xưng hô trong họ</h3>
-                    <p className="text-xs text-amber-700 dark:text-amber-400/80 mb-3">Chọn tên của bạn trong gia phả để biết cách xưng hô chính xác với thành viên này.</p>
-                    <div className="flex gap-2">
-                      <select 
-                        className="flex-1 p-2 bg-white dark:bg-zinc-950 border border-amber-200 dark:border-amber-800/50 rounded text-xs focus:outline-none"
-                        value={myMemberId}
-                        onChange={e => {
-                          const val = e.target.value;
-                          setMyMemberId(val);
-                          if (val) localStorage.setItem('myClanMemberId', val);
-                          else localStorage.removeItem('myClanMemberId');
-                        }}
-                      >
-                        <option value="">-- Chọn tên bạn --</option>
-                        {allMembers.map(m => (
-                          <option key={m.id} value={m.id}>{m.fullName} (Đời {m.generation})</option>
-                        ))}
-                      </select>
+                    <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100 mb-2">Bảng tra cứu xưng hô với thành viên này</h3>
+                    <p className="text-[11px] text-amber-700 dark:text-amber-400/80 mb-3 italic">Dành cho người trong họ tham khảo cách gọi (tùy thuộc vào chi/nhánh lớn nhỏ có thể thay đổi Bác/Chú/Cô):</p>
+                    
+                    <div className="bg-white/60 dark:bg-zinc-900/50 rounded border border-amber-100 dark:border-amber-900/20 overflow-hidden text-[11px]">
+                      <table className="w-full text-left">
+                        <tbody>
+                          <tr className="border-b border-amber-100 dark:border-zinc-800">
+                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500 w-1/3">Người Đời thứ {member.generation + 2}:</td>
+                            <td className="p-2 font-semibold text-amber-800 dark:text-amber-300">Gọi là <b>Ông / Bà</b> (Ông trẻ, Bà họ)</td>
+                          </tr>
+                          <tr className="border-b border-amber-100 dark:border-zinc-800">
+                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {member.generation + 1}:</td>
+                            <td className="p-2 font-semibold text-amber-800 dark:text-amber-300">Gọi là <b>Bác / Chú / Cô</b></td>
+                          </tr>
+                          <tr className="border-b border-amber-100 dark:border-zinc-800">
+                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {member.generation}:</td>
+                            <td className="p-2 font-semibold text-amber-800 dark:text-amber-300">Gọi là <b>Anh / Chị / Em họ</b></td>
+                          </tr>
+                          <tr>
+                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {Math.max(1, member.generation - 1)}:</td>
+                            <td className="p-2 font-semibold text-amber-800 dark:text-amber-300">Giao tiếp xưng <b>Cháu</b> (Cháu họ)</td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
-                    {myMemberId && (
-                      <div className="mt-3 p-2.5 bg-white/60 dark:bg-zinc-900/50 rounded border border-amber-100 dark:border-amber-900/20 text-sm">
-                        Bạn gọi người này là: <strong className="text-amber-700 dark:text-amber-400 text-base ml-1">{calculateKinship(allMembers, myMemberId, member.id)}</strong>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
