@@ -14,7 +14,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
   // Navigation translation states
   const [transform, setTransform] = useState({ x: 150, y: 30, scale: 0.75 });
   const [isDragging, setIsDragging] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0 });
+  const dragStart = useRef<any>({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Filter/Search states
@@ -236,6 +236,51 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
     setIsDragging(false);
   };
 
+  // Touch Handlers for Mobile Pan & Pinch Zoom
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('input') || (e.target as HTMLElement).closest('select')) return;
+    
+    if (e.touches.length === 2) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const dist = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+      dragStart.current = { ...dragStart.current, initialPinchDist: dist, initialScale: transform.scale };
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      dragStart.current = { ...dragStart.current, x: e.touches[0].clientX - transform.x, y: e.touches[0].clientY - transform.y };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const dist = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+      if (dragStart.current.initialPinchDist) {
+        const scaleChange = dist / dragStart.current.initialPinchDist;
+        let newScale = dragStart.current.initialScale * scaleChange;
+        newScale = Math.max(0.3, Math.min(newScale, 2.0));
+        setTransform(prev => ({ ...prev, scale: newScale }));
+      }
+      return;
+    }
+
+    if (!isDragging || e.touches.length !== 1) return;
+    setTransform(prev => ({
+      ...prev,
+      x: e.touches[0].clientX - dragStart.current.x,
+      y: e.touches[0].clientY - dragStart.current.y
+    }));
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    dragStart.current.initialPinchDist = undefined;
+  };
+
   // Zoom Controllers
   const zoomIn = () => setTransform(prev => ({ ...prev, scale: Math.min(prev.scale + 0.1, 1.8) }));
   const zoomOut = () => setTransform(prev => ({ ...prev, scale: Math.max(prev.scale - 0.1, 0.4) }));
@@ -346,6 +391,10 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
       >
         {/* Sticky Generation Labels */}
         <div className="absolute left-0 top-0 bottom-0 w-32 pointer-events-none z-20 overflow-hidden">
