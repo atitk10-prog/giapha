@@ -182,8 +182,14 @@ async function loadDatabaseState() {
 
 // Helper to save family database state
 async function saveDatabaseState(state: any) {
-  // Always keep local JSON as backup
-  fs.writeFileSync(DATA_FILE, JSON.stringify(state, null, 2), "utf-8");
+  // Always keep local JSON as backup (if not on read-only Vercel)
+  try {
+    if (!process.env.VERCEL) {
+      fs.writeFileSync(DATA_FILE, JSON.stringify(state, null, 2), "utf-8");
+    }
+  } catch (e) {
+    console.warn("Could not write local JSON backup (likely read-only environment).", e);
+  }
 
   if (sheets && GOOGLE_SPREADSHEET_ID) {
     try {
