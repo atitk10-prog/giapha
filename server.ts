@@ -3,7 +3,6 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { google } from "googleapis";
@@ -256,6 +255,10 @@ async function sendTelegramNotification(message: string) {
 }
 
 // API Routes
+app.get(["/api/test", "/test"], (req, res) => {
+  res.json({ ok: true, url: req.url, vercel: !!process.env.VERCEL });
+});
+
 // 1. Core data retrieval helper
 app.get(["/api/family-data", "/family-data"], async (req, res) => {
   const state = await loadDatabaseState();
@@ -460,9 +463,10 @@ Hãy viết tiểu sử bằng Tiếng Việt chuẩn mực mang đậm nét ch�
   }
 });
 
-// Wrap the server setup and listen in async-IIFE to bypass esbuild CommonJS top-level await limitations
+// Wrap the server setup and listen in async-IIFE
 (async () => {
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
