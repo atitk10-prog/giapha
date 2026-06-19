@@ -30,6 +30,41 @@ export default function LibraryManager({
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbxuzRowCOyQDJ-nUfMDSKU187secrBdkk34qG7-7MwfZ9IMowT6azAeYFZpoOtxZjSm/exec";
+  const FOLDER_ID = "1i75qUZgPdIaGvAyCUfbeARtFadjHTLy6";
+
+  const uploadFileToGAS = async (file: File): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const base64Data = (e.target?.result as string).split(',')[1];
+          const payload = {
+            filename: file.name,
+            mimetype: file.type || 'application/octet-stream',
+            data: base64Data,
+            folderId: FOLDER_ID
+          };
+          const res = await fetch(GAS_URL, {
+            method: "POST",
+            body: JSON.stringify(payload),
+            headers: { "Content-Type": "text/plain;charset=utf-8" }
+          });
+          const data = await res.json();
+          if (data.success) {
+            resolve(data);
+          } else {
+            reject(new Error(data.error || "Lỗi tải lên GAS"));
+          }
+        } catch (err: any) {
+          reject(new Error(err.message));
+        }
+      };
+      reader.onerror = () => reject(new Error("Lỗi đọc tệp tin"));
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Filter docs
   const filteredDocs = documents.filter(doc => {
     const matchSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -55,37 +90,13 @@ export default function LibraryManager({
 
       if (selectedFiles && selectedFiles.length > 0) {
         setIsUploading(true);
-        const formData = new FormData();
-        formData.append('files', selectedFiles[0]);
         try {
-          const res = await fetch('/api/upload-document', { method: 'POST', body: formData });
-          if (res.status === 413) {
-            alert('Lỗi: Tệp quá lớn! Máy chủ Vercel chỉ cho phép tải lên tối đa 4.5 MB mỗi tệp. Vui lòng chia nhỏ tệp nén hoặc giảm dung lượng PDF.');
-            setIsUploading(false);
-            return;
-          }
-          if (!res.ok) {
-            let errMsg = 'Không rõ nguyên nhân';
-            try {
-              const errData = await res.json();
-              errMsg = errData.error || errData.message || errMsg;
-            } catch (e) {}
-            alert(`Lỗi máy chủ (${res.status}): Không thể tải tệp lên. Chi tiết: ${errMsg}`);
-            setIsUploading(false);
-            return;
-          }
-          const data = await res.json();
-          if (data.success && data.files.length > 0) {
-            fileUrl = data.files[0].url;
-            downloadUrl = data.files[0].downloadUrl;
-            docSize = data.files[0].size;
-          } else {
-            alert('Lỗi tải tệp lên Drive: ' + (data.error || 'Unknown error'));
-            setIsUploading(false);
-            return;
-          }
+          const data = await uploadFileToGAS(selectedFiles[0]);
+          fileUrl = data.url;
+          downloadUrl = data.downloadUrl;
+          docSize = (data.size / (1024 * 1024)).toFixed(2) + ' MB';
         } catch (err: any) {
-          alert('Lỗi kết nối khi tải tệp: ' + err.message);
+          alert('Lỗi tải tệp: ' + err.message);
           setIsUploading(false);
           return;
         }
@@ -110,49 +121,30 @@ export default function LibraryManager({
         return;
       }
       setIsUploading(true);
-      const formData = new FormData();
+      let successCount = 0;
+      
       for (let i = 0; i < selectedFiles.length; i++) {
-        formData.append('files', selectedFiles[i]);
+        try {
+          const fileInfo = await uploadFileToGAS(selectedFiles[i]);
+          onAddDocument({
+            id: `DOC_${Date.now()}_${i}`,
+            name: docName ? (i === 0 ? docName : `${docName} (${i})`) : fileInfo.name,
+            category: category === 'khác' ? 'nhà thờ' : category,
+            fileType: fileInfo.name.endsWith('.doc') || fileInfo.name.endsWith('.docx') ? 'doc' : (fileInfo.name.endsWith('.zip') || fileInfo.name.endsWith('.rar') ? 'zip' : 'pdf'),
+            size: (fileInfo.size / (1024 * 1024)).toFixed(2) + ' MB',
+            url: fileInfo.url,
+            downloadUrl: fileInfo.downloadUrl,
+            downloadCount: 0,
+            updatedAt: new Date().toISOString().split('T')[0]
+          });
+          successCount++;
+        } catch (err: any) {
+          alert(`Lỗi tải tệp ${selectedFiles[i].name}: ` + err.message);
+        }
       }
 
-      try {
-        const res = await fetch('/api/upload-document', { method: 'POST', body: formData });
-        if (res.status === 413) {
-          alert('Lỗi: Tổng dung lượng các tệp quá lớn! Máy chủ Vercel chỉ cho phép tải lên tối đa 4.5 MB mỗi lần. Vui lòng tải từng tệp nhỏ gọn hơn.');
-          setIsUploading(false);
-          return;
-        }
-        if (!res.ok) {
-          let errMsg = 'Không rõ nguyên nhân';
-          try {
-            const errData = await res.json();
-            errMsg = errData.error || errData.message || errMsg;
-          } catch (e) {}
-          alert(`Lỗi máy chủ (${res.status}): Không thể tải tệp lên. Chi tiết: ${errMsg}`);
-          setIsUploading(false);
-          return;
-        }
-        const data = await res.json();
-        if (data.success && data.files) {
-          data.files.forEach((fileInfo: any, index: number) => {
-            onAddDocument({
-              id: `DOC_${Date.now()}_${index}`,
-              name: docName ? (index === 0 ? docName : `${docName} (${index})`) : fileInfo.name,
-              category: category === 'khác' ? 'nhà thờ' : category,
-              fileType: fileInfo.name.endsWith('.doc') || fileInfo.name.endsWith('.docx') ? 'doc' : (fileInfo.name.endsWith('.zip') || fileInfo.name.endsWith('.rar') ? 'zip' : 'pdf'),
-              size: fileInfo.size,
-              url: fileInfo.url,
-              downloadUrl: fileInfo.downloadUrl,
-              downloadCount: 0,
-              updatedAt: new Date().toISOString().split('T')[0]
-            });
-          });
-          alert(`Đã tải lên thành công ${data.files.length} tệp lên Google Drive dòng họ!`);
-        } else {
-          alert('Lỗi tải tệp lên Drive: ' + (data.error || 'Vui lòng kiểm tra cấu hình GOOGLE_DRIVE_FOLDER_ID'));
-        }
-      } catch (err: any) {
-        alert('Lỗi kết nối khi tải tệp: ' + err.message);
+      if (successCount > 0) {
+        alert(`Đã tải lên thành công ${successCount} tệp lên Google Drive dòng họ!`);
       }
       setIsUploading(false);
     }
@@ -386,8 +378,8 @@ export default function LibraryManager({
                   </div>
                 </div>
 
-                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl text-red-600 dark:text-red-400 text-[10px] sm:text-xs">
-                  <span className="font-bold">Lưu ý quan trọng:</span> Hệ thống lưu trữ (Vercel) hiện tại chỉ cho phép tải lên **tối đa 4.5 MB** cho mỗi lần tải. Nếu bạn có tệp nén hoặc ảnh dung lượng lớn hơn 4.5 MB, trình duyệt sẽ tự động chặn lại. Vui lòng chia nhỏ tệp nếu cần thiết!
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-xl text-blue-600 dark:text-blue-400 text-[10px] sm:text-xs">
+                  <span className="font-bold">Hệ thống Lõi (Google Apps Script):</span> Tải trực tiếp siêu tốc lên đến 35MB/tệp vào Google Drive dòng họ mà không qua máy chủ trung gian.
                 </div>
 
                 <div className="flex justify-end pt-1">
