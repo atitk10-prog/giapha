@@ -727,7 +727,7 @@ export default function MemberProfileModal({
                 <ShieldAlert className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div className="text-xs leading-relaxed">
                   <strong className="text-amber-800 dark:text-amber-400 font-sans">Thời khóa Phân quyền Sắp đặt:</strong>
-                  <p className="text-gray-500 mt-0.5">Với tư cách <strong className="text-gray-800 dark:text-gray-200">{currentUserRole}</strong> ({currentUserEmail}), bạn có quyền gửi các đề xuất chỉnh sửa tư liệu cũ, lỗi năm sinh, địa lý, hoặc số điện thoại. Yêu cầu của bạn sẽ được tự động xếp vào hàng đợi chờ duyệt để Trưởng tộc phê chuẩn, cam kết tính chính xác tuyệt đối của phả hệ tông thất.</p>
+                  <p className="text-gray-500 mt-0.5">Với tư cách <strong className="text-gray-800 dark:text-gray-200">{currentUserRole}</strong>, bạn có quyền gửi các đề xuất chỉnh sửa tư liệu cũ, lỗi năm sinh, địa lý, hoặc số điện thoại. Yêu cầu của bạn sẽ được tự động xếp vào hàng đợi chờ duyệt để Trưởng tộc phê chuẩn, cam kết tính chính xác tuyệt đối của phả hệ tông thất.</p>
                 </div>
               </div>
 

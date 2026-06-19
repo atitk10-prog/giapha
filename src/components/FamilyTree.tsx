@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { ClanMember, Gender } from '../types';
 import { hierarchy, tree } from 'd3-hierarchy';
-import { Search, ZoomIn, ZoomOut, Move, UserPlus, ChevronDown, ChevronRight, PlusCircle, HeartPulse } from 'lucide-react';
+import { Search, ZoomIn, ZoomOut, Move, UserPlus, ChevronDown, ChevronRight, PlusCircle, HeartPulse, Maximize, Minimize } from 'lucide-react';
 
 interface FamilyTreeProps {
   members: ClanMember[];
@@ -21,6 +21,9 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBranch, setFilterBranch] = useState('ALL');
   const [filterGeneration, setFilterGeneration] = useState('ALL');
+
+  // Fullscreen state
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Collapse states
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
@@ -327,7 +330,10 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
   };
 
   return (
-    <div className="relative w-full border border-gray-200 dark:border-gray-800 rounded-3xl bg-amber-50/20 dark:bg-zinc-950 shadow-inner overflow-hidden select-none">
+    <div className={isFullscreen 
+      ? "fixed inset-0 z-[100] bg-amber-50/95 dark:bg-zinc-950/95 backdrop-blur-md select-none"
+      : "relative w-full border border-gray-200 dark:border-gray-800 rounded-3xl bg-amber-50/20 dark:bg-zinc-950 shadow-inner overflow-hidden select-none"
+    }>
       
       {/* Top Controller Panel */}
       <div className="absolute top-4 left-4 right-4 z-10 flex flex-col sm:flex-row gap-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border border-gray-100 dark:border-zinc-800 p-3 rounded-2xl shadow-lg">
@@ -380,13 +386,16 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
           <button type="button" onClick={resetPan} className="px-2.5 py-1 text-xs rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-medium shadow transition-all">
             Mặc định
           </button>
+          <button type="button" onClick={() => setIsFullscreen(!isFullscreen)} className="p-1.5 rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-amber-100 transition-all ml-1">
+            {isFullscreen ? <Minimize className="h-4 w-4 text-gray-700 dark:text-zinc-300" /> : <Maximize className="h-4 w-4 text-gray-700 dark:text-zinc-300" />}
+          </button>
         </div>
       </div>
 
       {/* SVG Canvas View */}
       <div 
         ref={containerRef}
-        className={`relative overflow-hidden w-full h-[650px] cursor-grab ${isDragging ? 'cursor-grabbing' : ''}`}
+        className={`relative overflow-hidden w-full ${isFullscreen ? 'h-screen' : 'h-[650px]'} cursor-grab ${isDragging ? 'cursor-grabbing' : ''}`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
