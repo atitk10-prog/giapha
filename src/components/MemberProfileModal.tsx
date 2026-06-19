@@ -434,7 +434,7 @@ export default function MemberProfileModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                       <div>
                         <span className="text-gray-500 block">Hương hỏa quê quán:</span>
-                        <strong className="text-gray-900 dark:text-zinc-100">{member.hometown || 'Duy Xuyên, Quảng Nam'}</strong>
+                        <strong className="text-gray-900 dark:text-zinc-100">{member.hometown || 'Đồng Trường 2, thị trấn Trà My, Quảng Nam'}</strong>
                       </div>
                       <div>
                         <span className="text-gray-500 block font-sans">Nghề nghiệp:</span>
@@ -463,7 +463,7 @@ export default function MemberProfileModal({
                       {member.isDeceased && (
                         <div className="sm:col-span-2 bg-slate-100 dark:bg-zinc-800/50 p-2.5 rounded-lg border">
                           <span className="text-slate-500 block font-bold text-[10px] uppercase tracking-wider">Mộ Phần / Địa điểm an táng:</span>
-                          <span className="text-slate-800 dark:text-zinc-300 mt-1 block">🕯️ {member.burialPlace || 'An táng tại nghĩa trang dòng tộc Duy Xuyên, Quảng Nam.'}</span>
+                          <span className="text-slate-800 dark:text-zinc-300 mt-1 block">🕯️ {member.burialPlace || 'An táng tại nghĩa trang dòng tộc Đồng Trường 2, thị trấn Trà My, Quảng Nam.'}</span>
                           <span className="text-[10px] block text-slate-400 mt-1 italic">Mộ phần đã được lập sơ đồ gắn mã QR định vị tâm phục đầu mộ.</span>
                         </div>
                       )}

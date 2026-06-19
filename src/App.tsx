@@ -740,9 +740,9 @@ export default function App() {
               <span className="px-2.5 py-0.5 rounded bg-amber-700/80 text-[10px] uppercase font-mono tracking-widest text-amber-100 border border-amber-500/20">
                 Tổ đường chí trung hiếu
               </span>
-              <h2 className="text-xl sm:text-2xl font-black font-sans leading-none tracking-tight">TỘC NGUYỄN VĂN DUY XUYÊN</h2>
+              <h2 className="text-xl sm:text-2xl font-black font-sans leading-none tracking-tight">GIA PHẢ TỘC HỌ NGUYỄN</h2>
               <p className="text-xs text-amber-200 max-w-xl italic">
-                “Đoàn kết • Phụng gia hiếu học • Kiến tạo dòng tộc muôn đời thịnh vượng” - Tộc ước kiến lập gia phong vững bền xã tắc Duy Xuyên, Quảng Nam.
+                “Đoàn kết • Phụng gia hiếu học • Kiến tạo dòng tộc muôn đời thịnh vượng” - Tộc ước kiến lập gia phong vững bền dòng tộc gốc Nghệ An, nay tại Đồng Trường, Xã Trà My, TP. Đà Nẵng.
               </p>
             </div>
 
@@ -895,7 +895,7 @@ export default function App() {
       <footer className="border-t border-gray-150 dark:border-zinc-850 bg-white dark:bg-zinc-900 mt-12 py-8 text-center text-xs text-gray-400">
         <div className="max-w-7xl mx-auto px-4 space-y-2">
           <p className="font-sans font-bold text-gray-800 dark:text-zinc-300 flex items-center justify-center gap-1">
-            <Heart className="h-4 w-4 text-red-500 fill-current" /> Hội Đồng Gia Tộc Nguyễn Văn • Duy Xuyên, Quảng Nam
+            <Heart className="h-4 w-4 text-red-500 fill-current" /> Hội Đồng Gia Tộc Họ Nguyễn • Gốc Nghệ An, nay cư trú Đồng Trường, Xã Trà My, TP. Đà Nẵng
           </p>
           <p className="max-w-xl mx-auto text-[10.5px] leading-relaxed">
             Hệ thống gia phả số hóa tích hợp trợ thủ trí tuệ nhân tạo (AI), vận hành tủy biến dữ liệu thông qua cấu trúc Google Sheets truyền thông mà đảm bảo chi phí trọn đời bằng số không (0 đồng/tháng). Hãy kiểm chuẩn mọi thay đổi phả hệ của dòng tộc cùng đức hiền của cha ông.
