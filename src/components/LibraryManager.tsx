@@ -171,9 +171,33 @@ export default function LibraryManager({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa tài liệu này khỏi thư viện dòng họ không?') && onDeleteDocument) {
-      onDeleteDocument(id);
+  const handleDelete = async (doc: ClanDocument) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa tài liệu này khỏi thư viện dòng họ không? Thao tác này cũng sẽ XÓA VĨNH VIỄN tệp trên Google Drive.')) {
+      
+      // Delete from Google Drive if it's a real drive URL
+      let fileId = null;
+      if (doc.url && doc.url.includes('drive.google.com/file/d/')) {
+        const match = doc.url.match(/file\/d\/([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) fileId = match[1];
+      }
+      
+      if (fileId) {
+        try {
+          // Notify the user that it's deleting from cloud
+          console.log("Deleting file from Drive: " + fileId);
+          await fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'delete', fileId: fileId }),
+            headers: { "Content-Type": "text/plain;charset=utf-8" }
+          });
+        } catch(e) {
+          console.error("Lỗi xóa file trên Drive", e);
+        }
+      }
+
+      if (onDeleteDocument) {
+        onDeleteDocument(doc.id);
+      }
     }
   };
 
@@ -293,7 +317,7 @@ export default function LibraryManager({
                         <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(doc); }} className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-all border border-blue-100 active:scale-95" title="Sửa thông tin">
                           <span className="text-[10px] font-bold">Sửa</span>
                         </button>
-                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(doc.id); }} className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-all border border-red-100 active:scale-95" title="Xóa tài liệu">
+                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(doc); }} className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-all border border-red-100 active:scale-95" title="Xóa tài liệu">
                           <span className="text-[10px] font-bold">Xóa</span>
                         </button>
                       </>
