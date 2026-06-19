@@ -1,0 +1,50 @@
+import { TANSTACK_ROUTE_PROPERTY_ORDER } from "../../constants/tanstack.js";
+import { defineRule } from "../../utils/define-rule.js";
+import type { Rule } from "../../utils/rule.js";
+import type { RuleContext } from "../../utils/rule-context.js";
+import { getRouteOptionsObject } from "./utils/get-route-options-object.js";
+import { getPropertyKeyName } from "./utils/get-property-key-name.js";
+import type { EsTreeNodeOfType } from "../../utils/es-tree-node-of-type.js";
+
+export const tanstackStartRoutePropertyOrder = defineRule<Rule>({
+  id: "tanstack-start-route-property-order",
+  title: "Route property order breaks type inference",
+  tags: ["test-noise"],
+  requires: ["tanstack-start"],
+  severity: "error",
+  recommendation:
+    "Follow the route property order because TanStack Router's type inference depends on earlier properties feeding later ones.",
+  create: (context: RuleContext) => ({
+    CallExpression(node: EsTreeNodeOfType<"CallExpression">) {
+      const optionsObject = getRouteOptionsObject(node);
+      if (!optionsObject) return;
+
+      const properties = optionsObject.properties ?? [];
+      const orderedPropertyNames: string[] = [];
+      for (const property of properties) {
+        const propertyName = getPropertyKeyName(property);
+        if (propertyName !== null) {
+          orderedPropertyNames.push(propertyName);
+        }
+      }
+
+      const sensitiveProperties = orderedPropertyNames.filter((propertyName) =>
+        TANSTACK_ROUTE_PROPERTY_ORDER.includes(propertyName),
+      );
+
+      let lastIndex = -1;
+      for (const propertyName of sensitiveProperties) {
+        const currentIndex = TANSTACK_ROUTE_PROPERTY_ORDER.indexOf(propertyName);
+        if (currentIndex < lastIndex) {
+          const expectedBefore = TANSTACK_ROUTE_PROPERTY_ORDER[lastIndex];
+          context.report({
+            node: optionsObject,
+            message: `Ordering route property "${propertyName}" after "${expectedBefore}" breaks type inference.`,
+          });
+          return;
+        }
+        lastIndex = currentIndex;
+      }
+    },
+  }),
+});

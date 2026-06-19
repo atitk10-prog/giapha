@@ -1,0 +1,89 @@
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
+import {
+  CODING_AGENT_ENVIRONMENT_VALUE_VARIABLES,
+  CODING_AGENT_ENVIRONMENT_VARIABLES,
+} from "../src/cli/utils/is-ci-environment.js";
+import { NON_INTERACTIVE_ENVIRONMENT_VARIABLES } from "../src/cli/utils/is-non-interactive-environment.js";
+import { shouldSkipPrompts } from "../src/cli/utils/should-skip-prompts.js";
+import { stubProcessStdinProperty } from "./helpers/stub-process-stdin-property.js";
+
+// The env vars `isNonInteractiveEnvironment()` consults. Cleared at the
+// start of each test so the helper's result depends only on what the
+// individual test sets.
+const NON_INTERACTIVE_ENV_VARS = [
+  ...NON_INTERACTIVE_ENVIRONMENT_VARIABLES,
+  ...CODING_AGENT_ENVIRONMENT_VARIABLES,
+  ...CODING_AGENT_ENVIRONMENT_VALUE_VARIABLES,
+] as const;
+
+describe("shouldSkipPrompts", () => {
+  let savedEnv: Record<string, string | undefined>;
+  let restoreStdinIsTty: () => void;
+
+  beforeEach(() => {
+    savedEnv = {};
+    for (const envVarName of NON_INTERACTIVE_ENV_VARS) {
+      savedEnv[envVarName] = process.env[envVarName];
+      delete process.env[envVarName];
+    }
+    restoreStdinIsTty = stubProcessStdinProperty("isTTY", true);
+  });
+
+  afterEach(() => {
+    for (const envVarName of NON_INTERACTIVE_ENV_VARS) {
+      const previousValue = savedEnv[envVarName];
+      if (previousValue === undefined) {
+        delete process.env[envVarName];
+      } else {
+        process.env[envVarName] = previousValue;
+      }
+    }
+    restoreStdinIsTty();
+  });
+
+  it("returns false with an interactive TTY and no other signals", () => {
+    expect(shouldSkipPrompts()).toBe(false);
+  });
+
+  it("returns true when --yes is set", () => {
+    expect(shouldSkipPrompts({ yes: true })).toBe(true);
+  });
+
+  it("returns true when --json is set (inspect path)", () => {
+    expect(shouldSkipPrompts({ json: true })).toBe(true);
+  });
+
+  it("returns true when stdin is not a TTY", () => {
+    restoreStdinIsTty();
+    restoreStdinIsTty = stubProcessStdinProperty("isTTY", false);
+    expect(shouldSkipPrompts()).toBe(true);
+  });
+
+  // Regression guard for H1: install command must respect CI env vars even
+  // when stdin is attached to a TTY. Without `isNonInteractiveEnvironment()`
+  // in shouldSkipPrompts, this would return false and the install command
+  // would hang on the agent-selection prompt in CI runners that allocate
+  // a pseudo-TTY (e.g. `act`, GitHub Actions with `tty: true`).
+  it("returns true when CI env var is set, even with an interactive TTY", () => {
+    process.env.CI = "true";
+    expect(shouldSkipPrompts()).toBe(true);
+  });
+
+  it("returns true when CLAUDECODE env var is set (agent shell)", () => {
+    process.env.CLAUDECODE = "1";
+    expect(shouldSkipPrompts()).toBe(true);
+  });
+
+  it("returns true when CURSOR_AGENT env var is set (agent shell)", () => {
+    process.env.CURSOR_AGENT = "1";
+    expect(shouldSkipPrompts()).toBe(true);
+  });
+
+  // `GIT_DIR` is set by git itself whenever it invokes a hook (per
+  // `git-hooks(5)`), which means lefthook / husky / pre-commit /
+  // simple-git-hooks are all covered without per-tool env vars.
+  it("returns true when GIT_DIR is set (git hook execution)", () => {
+    process.env.GIT_DIR = "/repo/.git";
+    expect(shouldSkipPrompts()).toBe(true);
+  });
+});

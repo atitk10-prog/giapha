@@ -1,0 +1,46 @@
+{
+  "name": "@react-doctor/core",
+  "version": "0.5.1",
+  "private": true,
+  "description": "Internal: diagnostic engine for React Doctor (lint runner, scoring, config, suppressions). Not published.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas.d.ts",
+      "default": "./dist/schemas.js"
+    }
+  },
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && cross-env NODE_ENV=production vp pack",
+    "test": "vp test run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@effect/platform-node-shared": "4.0.0-beta.70",
+    "confbox": "^0.2.4",
+    "deslop-js": "^0.0.21",
+    "effect": "4.0.0-beta.70",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jiti": "^2.7.0",
+    "oxlint": "^1.66.0",
+    "oxlint-plugin-react-doctor": "workspace:*",
+    "picomatch": "^4.0.4",
+    "semver": "^7.7.4",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@effect/vitest": "4.0.0-beta.70",
+    "@types/node": "^25.6.0",
+    "@types/picomatch": "^4.0.3",
+    "@types/semver": "^7.7.1"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.13.0"
+  }
+}

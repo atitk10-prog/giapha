@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node-version: ["20.19.0", "22.18.0", "24", "25", "26"]
+        include:
+          - os: windows-latest
+            node-version: "22.18.0"
+          - os: macos-latest
+            node-version: "22.18.0"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm test
+
+      - run: pnpm typecheck
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == '22.18.0' }}
+
+      - run: pnpm lint
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == '22.18.0' }}
+
+      - name: Check formatting
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == '22.18.0' }}
+        shell: bash
+        run: |
+          format_output_file="$(mktemp)"
+
+          set +e
+          pnpm format:check 2>&1 | tee "$format_output_file"
+          format_status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$format_status" -ne 0 ]; then
+            while IFS= read -r format_line; do
+              format_file="${format_line%% (*}"
+
+              if [ "$format_file" = "$format_line" ] || [ ! -f "$format_file" ]; then
+                continue
+              fi
+
+              format_annotation_file="${format_file//'%'/'%25'}"
+              format_annotation_file="${format_annotation_file//$'\r'/'%0D'}"
+              format_annotation_file="${format_annotation_file//$'\n'/'%0A'}"
+              format_annotation_file="${format_annotation_file//':'/'%3A'}"
+              format_annotation_file="${format_annotation_file//','/'%2C'}"
+              echo "::error file=$format_annotation_file::File is not formatted. Run pnpm format."
+            done < "$format_output_file"
+          fi
+
+          rm -f "$format_output_file"
+          exit "$format_status"
+
+      - name: Smoke test built CLI
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == '22.18.0' }}
+        run: |
+          cd packages/react-doctor
+          pnpm build
+          BUILT_VERSION=$(node bin/react-doctor.js --version)
+          echo "Built CLI reports version: $BUILT_VERSION"
+          if [ -z "$BUILT_VERSION" ] || [ "$BUILT_VERSION" = "0.0.0" ]; then
+            echo "Built CLI version is missing or 0.0.0; build env did not inject VERSION"
+            exit 1
+          fi
+
+      - name: Smoke test JSON report shape
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == '22.18.0' }}
+        run: pnpm smoke:json-report
+
+      # Regression guard for #629: a published package's built output must not
+      # import a package that isn't in its `dependencies` (such phantom imports
+      # only resolve when a sibling dependency happens to supply them, and crash
+      # consumers on strict installs). Builds every package, then audits dist.
+      - name: Check published packages declare their runtime dependencies
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == '22.18.0' }}
+        run: |
+          pnpm build
+          pnpm check:published-deps
+
+      - name: Smoke test packed CLI install
+        if: ${{ matrix.node-version == '22.18.0' && (matrix.os == 'ubuntu-latest' || matrix.os == 'windows-latest') }}
+        run: |
+          pnpm build
+          pnpm smoke:packed-cli-install
+
+      # Allocates a real pseudo-terminal (`pty.openpty()`) so the CLI sees an
+      # interactive TTY and renders the multiselect prompt, then asserts the
+      # process stays alive waiting for input instead of exiting by itself
+      # (regression guard for #576: unref'd stdin killed interactive prompts).
+      - name: Smoke test interactive TTY prompt
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == '22.18.0' }}
+        run: pnpm smoke:tty-prompt

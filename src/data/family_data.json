@@ -1,0 +1,764 @@
+{
+  "members": [
+    {
+      "id": "NV-001",
+      "fullName": "Nguyễn Văn Xiêm",
+      "nickname": "Cụ Tổ đời thứ 1",
+      "gender": "Nam",
+      "generation": 1,
+      "branchId": "CHI_TRUONG",
+      "dob": 1890,
+      "isDeceased": true,
+      "dod": 2017,
+      "burialPlace": "Bản tộc Lăng mộ, Duy Xuyên, Quảng Nam",
+      "birthPlace": "Duy Xuyên, Quảng Nam",
+      "hometown": "Nghệ An",
+      "profession": "Nông nghiệp",
+      "education": "Hán học Khấm khoa",
+      "address": "Đồng Trường, Trà My, Đà Nẵng",
+      "avatarUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200",
+      "achievements": [
+        "không"
+      ],
+      "locationName": "Quảng Nam",
+      "lat": 15.8239,
+      "lng": 108.2618,
+      "spouseId": "NV-001W"
+    },
+    {
+      "id": "NV-001W",
+      "fullName": "Lê Thị Bình",
+      "nickname": "Cụ Bà",
+      "gender": "Nữ",
+      "generation": 1,
+      "branchId": "CHI_TRUONG",
+      "dob": 1893,
+      "isDeceased": true,
+      "dod": 1975,
+      "burialPlace": "Duy Xuyên, Quảng Nam",
+      "birthPlace": "Điện Bàn, Quảng Nam",
+      "hometown": "Điện Bàn, Quảng Nam",
+      "profession": "Nội trợ, Nông nghiệp",
+      "address": "Duy Xuyên, Quảng Nam",
+      "avatarUrl": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&q=80&w=200",
+      "spouseId": "NV-001",
+      "biography": "Cụ bà tào khang tần tảo nuôi dưỡng con cháu đỗ đạt."
+    },
+    {
+      "id": "NV-002",
+      "fullName": "Nguyễn Văn ",
+      "nickname": "Ông Hai Cường",
+      "gender": "Nam",
+      "generation": 2,
+      "branchId": "CHI_TRUONG",
+      "dob": 1915,
+      "isDeceased": true,
+      "dod": 1995,
+      "burialPlace": "Nghĩa trang Duy Xuyên, Quảng Nam",
+      "birthPlace": "Duy Xuyên, Quảng Nam",
+      "hometown": "Duy Xuyên, Quảng Nam",
+      "profession": "Dạy học, Lương y",
+      "education": "Tú Tài",
+      "address": "Quảng Nam",
+      "avatarUrl": "data:image/jpeg;base64,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",
+      "achievements": [
+        "Bằng khen vì sự nghiệp Giáo dục dòng họ",
+        "Thầy thuốc nhân dân uy tín"
+      ],
+      "locationName": "Quảng Nam",
+      "lat": 15.8239,
+      "lng": 108.2618,
+      "spouseId": "NV-002W",
+      "biography": "Người khai sáng phong trào học tập của chi nhà, từng tham gia cứu tế năm 1945.",
+      "fatherId": "NV-001",
+      "motherId": "NV-001W"
+    },
+    {
+      "id": "NV-002W",
+      "fullName": "Trần Thị Dung",
+      "nickname": "Bà Hai Cường",
+      "gender": "Nữ",
+      "generation": 2,
+      "branchId": "CHI_TRUONG",
+      "dob": 1918,
+      "isDeceased": true,
+      "dod": 2001,
+      "burialPlace": "Quảng Nam",
+      "birthPlace": "Hòa Vang, Đà Nẵng",
+      "hometown": "Hòa Vang, Đà Nẵng",
+      "spouseId": "NV-002"
+    },
+    {
+      "id": "NV-003",
+      "fullName": "Nguyễn Văn Đức",
+      "nickname": "Ông Ba Đức",
+      "gender": "Nam",
+      "generation": 2,
+      "branchId": "CHI_THU_01",
+      "dob": 1918,
+      "isDeceased": true,
+      "dod": 1988,
+      "burialPlace": "Nghĩa trang Hòa Sơn, Đà Nẵng",
+      "birthPlace": "Duy Xuyên, Quảng Nam",
+      "hometown": "Duy Xuyên, Quảng Nam",
+      "profession": "Kinh doanh gỗ",
+      "education": "Trung học",
+      "address": "Đà Nẵng",
+      "avatarUrl": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=200",
+      "locationName": "Đà Nẵng",
+      "lat": 16.0544,
+      "lng": 108.2022,
+      "spouseId": "NV-003W",
+      "biography": "Sáng lập nên Chi Thứ Một lập nghiệp tại Đà Nẵng.",
+      "fatherId": "NV-001",
+      "motherId": "NV-001W"
+    },
+    {
+      "id": "NV-003W",
+      "fullName": "Phạm Thị Em",
+      "nickname": "Bà Ba Đức",
+      "gender": "Nữ",
+      "generation": 2,
+      "branchId": "CHI_THU_01",
+      "dob": 1921,
+      "isDeceased": true,
+      "dod": 2005,
+      "spouseId": "NV-003"
+    },
+    {
+      "id": "NV-004W",
+      "fullName": "Hoàng Thị Hoa",
+      "gender": "Nữ",
+      "generation": 3,
+      "branchId": "CHI_TRUONG",
+      "dob": 1948,
+      "isDeceased": false,
+      "address": "Hải Châu, Đà Nẵng",
+      "spouseId": "NV-004"
+    },
+    {
+      "id": "NV-005",
+      "fullName": "Nguyễn Văn Hùng",
+      "nickname": "Chú Năm Hùng",
+      "gender": "Nam",
+      "generation": 3,
+      "branchId": "CHI_TRUONG",
+      "dob": 1948,
+      "isDeceased": false,
+      "birthPlace": "Quảng Nam",
+      "hometown": "Duy Xuyên, Quảng Nam",
+      "profession": "Cựu thanh niên xung phong, Trưởng tộc",
+      "education": "Cử nhân Sử học",
+      "address": "Duy Xuyên, Quảng Nam",
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
+      "achievements": [
+        "Cựu chiến binh gương mẫu",
+        "Trưởng chi tích cực 10 năm liền dóng góp dòng họ"
+      ],
+      "locationName": "Quảng Nam",
+      "lat": 15.8239,
+      "lng": 108.2618,
+      "spouseId": "NV-005W",
+      "biography": "Đang đảm đương ngôi ví Trưởng chi họ Trưởng Nguyễn Văn tại Quảng Nam. Lưu giữ hương hỏa, tộc phả dòng tộc.",
+      "fatherId": "NV-002",
+      "motherId": "NV-002W",
+      "phone": "0905123456",
+      "email": "hung.nguyenvan@gmail.com"
+    },
+    {
+      "id": "NV-005W",
+      "fullName": "Vũ Thị Hương",
+      "gender": "Nữ",
+      "generation": 3,
+      "branchId": "CHI_TRUONG",
+      "dob": 1952,
+      "isDeceased": false,
+      "address": "Duy Xuyên, Quảng Nam",
+      "avatarUrl": "data:image/jpeg;base64,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",
+      "spouseId": "NV-005"
+    },
+    {
+      "id": "NV-006",
+      "fullName": "Nguyễn Nam Sơn",
+      "nickname": "Chú Sáu Sơn",
+      "gender": "Nam",
+      "generation": 3,
+      "branchId": "CHI_THU_01",
+      "dob": 1952,
+      "isDeceased": false,
+      "birthPlace": "Đà Nẵng",
+      "hometown": "Duy Xuyên, Quảng Nam",
+      "profession": "Nguyên Chủ tịch phường Hải Châu",
+      "education": "Cử nhân Luật",
+      "address": "Liên Chiểu, Đà Nẵng",
+      "avatarUrl": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=200",
+      "achievements": [
+        "Vì sự nghiệp xây dựng đô thị",
+        "Bằng khen của Chủ tịch UBND Thành phố"
+      ],
+      "locationName": "Đà Nẵng",
+      "lat": 16.0544,
+      "lng": 108.2022,
+      "spouseId": "NV-006W",
+      "biography": "Đứng đầu chi Thứ lập nghiệp thịnh vượng tại thành phố Đà Nẵng, tích cực quyên góp quỹ khuyến học.",
+      "fatherId": "NV-003",
+      "motherId": "NV-003W",
+      "phone": "0905999888",
+      "email": "son.nguyennam@danang.gov.vn"
+    },
+    {
+      "id": "NV-006W",
+      "fullName": "Trịnh Thị Lâm",
+      "gender": "Nữ",
+      "generation": 3,
+      "branchId": "CHI_THU_01",
+      "dob": 1955,
+      "isDeceased": false,
+      "address": "Liên Chiểu, Đà Nẵng",
+      "spouseId": "NV-006"
+    },
+    {
+      "id": "NV-007",
+      "fullName": "Nguyễn Văn Minh",
+      "gender": "Nam",
+      "generation": 4,
+      "branchId": "CHI_TRUONG",
+      "dob": 1972,
+      "isDeceased": false,
+      "birthPlace": "Quảng Nam",
+      "hometown": "Quảng Nam",
+      "profession": "Trưởng phòng báo chí",
+      "education": "Thạc sĩ Báo chí học",
+      "address": "Quận 3, TP. Hồ Chí Minh",
+      "avatarUrl": "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&q=80&w=200",
+      "achievements": [
+        "Cây bút vàng báo chí cách mạng 2018"
+      ],
+      "locationName": "TP. Hồ Chí Minh",
+      "lat": 10.7769,
+      "lng": 106.7009,
+      "spouseId": "NV-007W",
+      "biography": "Chuyển cư vào phát triển sự nghiệp tại TP. Hồ Chí Minh và thường xuyên hướng về quê nhà trong các dịp Giỗ tổ.",
+      "fatherId": "NV-004",
+      "motherId": "NV-004W",
+      "phone": "0913444555",
+      "email": "minh.nguyenwriter@gmail.com"
+    },
+    {
+      "id": "NV-007W",
+      "fullName": "Lê Thị Nguyệt",
+      "gender": "Nữ",
+      "generation": 4,
+      "branchId": "CHI_TRUONG",
+      "dob": 1975,
+      "isDeceased": false,
+      "address": "Quận 3, TP. Hồ Chí Minh",
+      "spouseId": "NV-007"
+    },
+    {
+      "id": "NV-008",
+      "fullName": "Nguyễn Thị Lan",
+      "gender": "Nữ",
+      "generation": 4,
+      "branchId": "CHI_TRUONG",
+      "dob": 1976,
+      "isDeceased": false,
+      "birthPlace": "Hải Châu, Đà Nẵng",
+      "hometown": "Duy Xuyên, Quảng Nam",
+      "profession": "Giáo viên THPT cấp Quốc gia",
+      "education": "Thạc sĩ Sư phạm Vật lý",
+      "address": "Hải Châu, Đà Nẵng",
+      "avatarUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=200",
+      "achievements": [
+        "Giáo viên giỏi cấp quốc gia 2021"
+      ],
+      "locationName": "Đà Nẵng",
+      "lat": 16.0544,
+      "lng": 108.2022,
+      "biography": "Giáo viên kỳ cựu bồi dưỡng nhiều học sinh thi IOE và kỳ thi cấp tỉnh.",
+      "fatherId": "NV-004",
+      "motherId": "NV-004W",
+      "phone": "0983111222",
+      "email": "lan.physics@outlook.com"
+    },
+    {
+      "id": "NV-009",
+      "fullName": "Nguyễn Văn Anh",
+      "gender": "Nam",
+      "generation": 4,
+      "branchId": "CHI_TRUONG",
+      "dob": 1978,
+      "isDeceased": false,
+      "birthPlace": "Quảng Nam",
+      "hometown": "Duy Xuyên, Quảng Nam",
+      "profession": "Kỹ sư IT tại Thung lũng Silicon",
+      "education": "Thạc sĩ CS, Đại học Stanford",
+      "address": "San Jose, California, Mỹ",
+      "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200",
+      "achievements": [
+        "Bằng khen Kiều bào đóng góp tiêu biểu quê nhà"
+      ],
+      "locationName": "Mỹ",
+      "lat": 37.3382,
+      "lng": -121.8863,
+      "spouseId": "NV-009W",
+      "biography": "Kỹ sư cao cấp đóng góp phần nhiều chi tài trợ hàng năm cho Quỹ bảo trợ, tu bổ di tích nhà thờ tổ dòng họ.",
+      "fatherId": "NV-005",
+      "motherId": "NV-005W",
+      "phone": -740,
+      "email": "anh.nguyen.it@stanford.edu"
+    },
+    {
+      "id": "NV-009W",
+      "fullName": "Trần Thị Mai",
+      "gender": "Nữ",
+      "generation": 4,
+      "branchId": "CHI_TRUONG",
+      "dob": 1981,
+      "isDeceased": false,
+      "address": "San Jose, California, Mỹ",
+      "spouseId": "NV-009"
+    },
+    {
+      "id": "NV-010",
+      "fullName": "Nguyễn Minh Quân",
+      "gender": "Nam",
+      "generation": 5,
+      "branchId": "CHI_TRUONG",
+      "dob": 1998,
+      "isDeceased": false,
+      "birthPlace": "TP. Hồ Chí Minh",
+      "hometown": "Quảng Nam",
+      "profession": "Kỹ sư AI Đột phá",
+      "education": "Kỹ sư CNTT, ĐTQG",
+      "address": "Quận 1, TP. Hồ Chí Minh",
+      "avatarUrl": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200",
+      "achievements": [
+        "Giải Nhất Nhân tài Đất Việt ngành phần mềm",
+        "Gương mặt trẻ Công nghệ tiêu biểu"
+      ],
+      "locationName": "TP. Hồ Chí Minh",
+      "lat": 10.7769,
+      "lng": 106.7009,
+      "biography": "Xây dựng cốt lõi giải thuật số hóa phả hệ cho dòng tộc, yêu thích nghiên cứu văn hóa truyền thống.",
+      "fatherId": "NV-007",
+      "motherId": "NV-007W",
+      "phone": "0935555444",
+      "email": "quan.nguyenai@gmail.com"
+    },
+    {
+      "id": "NV-012",
+      "fullName": "Nguyễn Văn Khải",
+      "gender": "Nam",
+      "generation": 5,
+      "branchId": "CHI_TRUONG",
+      "dob": 2005,
+      "isDeceased": false,
+      "birthPlace": "Silicon Valley, Mỹ",
+      "hometown": "Quảng Nam",
+      "profession": "Học sinh, Lập trình viên trẻ",
+      "education": "Học sinh trung học xuất sắc",
+      "address": "San Jose, California, Mỹ",
+      "avatarUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200",
+      "achievements": [
+        "Giải Nhì Tin học trẻ cấp bang California",
+        "Đoạt vé vàng khoa học Silicon Valley"
+      ],
+      "locationName": "Mỹ",
+      "lat": 37.3382,
+      "lng": -121.8863,
+      "biography": "Tham dự cuộc thi Olympic tin học bang California quốc gia Mỹ đạt kết quả ấn tượng.",
+      "fatherId": "NV-009",
+      "motherId": "NV-009W",
+      "email": "khai.nguyen@gmail.com"
+    },
+    {
+      "id": "MEM_1781800623673_940",
+      "fullName": "Nguyễn C",
+      "gender": "Nam",
+      "generation": 3,
+      "branchId": "CHI_TRUONG",
+      "isDeceased": false,
+      "spouseId": "MEM_1781800648689_582",
+      "fatherId": "NV-002"
+    },
+    {
+      "id": "MEM_1781840453641_263",
+      "fullName": "a",
+      "gender": "Nam",
+      "generation": 3,
+      "branchId": "CHI_TRUONG",
+      "isDeceased": false,
+      "fatherId": "NV-002"
+    },
+    {
+      "id": "MEM_1781840465385_51",
+      "fullName": "b",
+      "gender": "Nam",
+      "generation": 3,
+      "branchId": "CHI_TRUONG",
+      "isDeceased": false,
+      "fatherId": "NV-002"
+    },
+    {
+      "id": "MEM_1781840465385_51",
+      "fullName": "b",
+      "gender": "Nam",
+      "generation": 3,
+      "branchId": "CHI_TRUONG",
+      "isDeceased": false,
+      "fatherId": "NV-002"
+    }
+  ],
+  "branches": [
+    {
+      "id": "CHI_TRUONG",
+      "name": "Chi Trưởng (Nguyễn Văn Cường)",
+      "leaderId": "NV-005",
+      "leaderName": "Nguyễn Văn Hùng",
+      "description": "Chi họ ngành trưởng cư trú chính tại dòng tộc hương hỏa Quảng Nam."
+    },
+    {
+      "id": "CHI_THU_01",
+      "name": "Chi Thứ Một (Nguyễn Văn Đức)",
+      "leaderId": "NV-006",
+      "leaderName": "Nguyễn Nam Sơn",
+      "description": "Chi họ ngành thứ cư trú chính tại Đà Nẵng và các tỉnh phía Nam."
+    }
+  ],
+  "events": [
+    {
+      "id": "EV_001",
+      "title": "Đại Lễ Giỗ tổ Tộc Nguyễn Văn",
+      "description": "Đại lễ giỗ tổ toàn tộc năm 2026. Tất cả các đời con cháu hội ngộ tưởng nhớ Cụ Tổ lập phái, sửa soạn dâng hương báo cáo thành tích.",
+      "category": "giỗ tổ",
+      "dateSolar": 46142,
+      "dateLunar": "Ngày 14 tháng 3 Âm Lịch",
+      "location": "Nhà thờ họ Nguyễn Văn Duy Xuyên, Quảng Nam",
+      "host": "Trưởng tộc Nguyễn Văn Hùng",
+      "image": "https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?auto=format&fit=crop&q=80&w=800",
+      "attendees": [
+        "quan.nguyenai@gmail.com",
+        "anh.nguyen.it@stanford.edu",
+        "atnguyen.skayer@gmail.com"
+      ]
+    },
+    {
+      "id": "EV_002",
+      "title": "Họp Họ Tổng Kết Quy Tộc & Vinh Danh Khuyến Học",
+      "description": "Họp quyết toán niên độ, lập báo cáo tu bổ lăng tự dòng tộc và trao học bổng khuyến tài cho học sinh giỏi đạt giải cấp tỉnh trở lên.",
+      "category": "khuyến học",
+      "dateSolar": 46228,
+      "dateLunar": "Ngày 12 tháng 6 Âm Lịch",
+      "location": "Sân trung tâm Từ đường họ, Duy Xuyên, Quảng Nam",
+      "host": "Trưởng chi Nguyễn Nam Sơn",
+      "attendees": [
+        "atnguyen.skayer@gmail.com"
+      ]
+    }
+  ],
+  "fundTransactions": [
+    {
+      "id": "TX_001",
+      "type": "thu",
+      "title": "Đóng góp tu tạo Từ đường",
+      "amount": 50000000,
+      "date": 46068,
+      "category": "tài trợ",
+      "contributor": "Nguyễn Văn Anh (Mỹ)"
+    },
+    {
+      "id": "TX_002",
+      "type": "thu",
+      "title": "Quỹ khuyến học Chi Thứ Một quyên góp",
+      "amount": 15000000,
+      "date": 45981,
+      "category": "đóng góp",
+      "contributor": "Nguyễn Nam Sơn"
+    },
+    {
+      "id": "TX_003",
+      "type": "chi",
+      "title": "Ủng hộ học bổng khuyến tài năm học vừa qua",
+      "amount": 12000000,
+      "date": 45986,
+      "category": "khuyến học",
+      "contributor": "Đội Khuyến học Tộc viên"
+    },
+    {
+      "id": "TX_004",
+      "type": "chi",
+      "title": "Chi phí mua sắm lễ thặng Giỗ tổ quý xuân",
+      "amount": 8000000,
+      "date": 46140,
+      "category": "giỗ tổ",
+      "contributor": "Ban khánh tiết Tổ đường"
+    }
+  ],
+  "scholarships": [
+    {
+      "id": "SCH_001",
+      "studentName": "Nguyễn Minh Quân",
+      "achievementTitle": "Giải Nhất Nhân tài Đất Việt phát triển giải thuật",
+      "awardName": "Học bổng Nguyễn Văn Đột Phá Công Nghệ",
+      "year": 2025,
+      "amount": 5000000
+    },
+    {
+      "id": "SCH_002",
+      "studentName": "Nguyễn Minh Khánh",
+      "achievementTitle": "Thủ khoa tốt nghiệp ĐH Khoa học Tự nhiên Hà Nội",
+      "awardName": "Gương sáng đỗ đầu dòng học Tôn vinh",
+      "year": 2024,
+      "amount": 5000000
+    },
+    {
+      "id": "SCH_003",
+      "studentName": "Nguyễn Văn Khải",
+      "achievementTitle": "Giải Nhì Olympic Tin học trẻ Silicon Valley",
+      "awardName": "Học bổng Kiều bào trẻ tài đức",
+      "year": 2025,
+      "amount": 3000000
+    }
+  ],
+  "documents": [
+    {
+      "id": "DOC_001",
+      "name": "Gia_Pha_Nguyen_Van_Toan_Phai.pdf",
+      "category": "gia phả",
+      "fileType": "pdf",
+      "size": "14.2 MB",
+      "url": "#",
+      "downloadCount": 343,
+      "updatedAt": 46027
+    },
+    {
+      "id": "DOC_002",
+      "name": "Toc_Uoc_Kien_To_Chi_Ngon.pdf",
+      "category": "tộc ước",
+      "fileType": "pdf",
+      "size": "2.5 MB",
+      "url": "#",
+      "downloadCount": 188,
+      "updatedAt": 41047
+    },
+    {
+      "id": "DOC_003",
+      "name": "Bien_Ban_Dong_Gop_Tu_Bao_Y_Y7.doc",
+      "category": "nhà thờ",
+      "fileType": "doc",
+      "size": "412 KB",
+      "url": "#",
+      "downloadCount": 45,
+      "updatedAt": 46142
+    }
+  ],
+  "suggestions": [
+    {
+      "id": "SUG_001",
+      "memberId": "NV-008",
+      "memberName": "Nguyễn Thị Lan",
+      "fieldName": "dob",
+      "oldValue": 1975,
+      "newValue": 1976,
+      "proposedBy": "atnguyen.skayer@gmail.com",
+      "proposedAt": "2026-06-17T15:00:00Z",
+      "status": "đã duyệt"
+    },
+    {
+      "id": "SUG_1781845628224",
+      "memberId": "NV-001",
+      "memberName": "Nguyễn Văn Xiêm",
+      "fieldName": "address",
+      "oldValue": "Duy Xuyên, Quảng Nam",
+      "newValue": "Đồng Trường, Trà My, Đà Nẵng",
+      "proposedBy": "atnguyen.skayer@gmail.com",
+      "proposedAt": "2026-06-19T05:07:08.224Z",
+      "status": "đã duyệt"
+    },
+    {
+      "id": "SUG_1781846043919",
+      "memberId": "NV-001",
+      "memberName": "Nguyễn Văn Xiêm",
+      "fieldName": "achievements",
+      "oldValue": [
+        "Khai sơn lập tộc Nguyễn Văn",
+        "Được sắc phong Tộc Trưởng hiếu nhân"
+      ],
+      "newValue": "không",
+      "proposedBy": "atnguyen.skayer@gmail.com",
+      "proposedAt": "2026-06-19T05:14:03.919Z",
+      "status": "đã duyệt"
+    }
+  ],
+  "logs": [
+    {
+      "id": "LOG_001",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Đăng nhập hệ thống",
+      "target": "Hệ thống Gia Phả",
+      "time": "2026-06-18T09:12:00Z"
+    },
+    {
+      "id": "LOG_1781785494753",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Đổi phiên vai trò người xem",
+      "target": "Trưởng chi",
+      "time": "2026-06-18T12:24:54.753Z"
+    },
+    {
+      "id": "LOG_1781785610593",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Đổi phiên vai trò người xem",
+      "target": "Quản trị viên",
+      "time": "2026-06-18T12:26:50.593Z"
+    },
+    {
+      "id": "LOG_1781785616248",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Đổi phiên vai trò người xem",
+      "target": "Trưởng chi",
+      "time": "2026-06-18T12:26:56.248Z"
+    },
+    {
+      "id": "LOG_1781795136111",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Thêm mới thành viên phả bạ",
+      "target": "An",
+      "time": "2026-06-18T15:05:36.111Z"
+    },
+    {
+      "id": "LOG_1781796482696",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Đổi phiên vai trò người xem",
+      "target": "Trưởng chi",
+      "time": "2026-06-18T15:28:02.696Z"
+    },
+    {
+      "id": "LOG_1781839731847",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Cập nhật trực tiếp hồ sơ",
+      "target": "Nguyễn C",
+      "time": "2026-06-19T03:28:51.847Z"
+    },
+    {
+      "id": "LOG_1781839770243",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Cập nhật trực tiếp hồ sơ",
+      "target": "Nguyễn C",
+      "time": "2026-06-19T03:29:30.243Z"
+    },
+    {
+      "id": "LOG_1781840453641",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Thêm mới thành viên phả bạ",
+      "target": "a",
+      "time": "2026-06-19T03:40:53.641Z"
+    },
+    {
+      "id": "LOG_1781840465385",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Thêm mới thành viên phả bạ",
+      "target": "b",
+      "time": "2026-06-19T03:41:05.385Z"
+    },
+    {
+      "id": "LOG_1781842782394",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Cập nhật trực tiếp hồ sơ",
+      "target": "Nguyễn Minh Khánh",
+      "time": "2026-06-19T04:19:42.394Z"
+    },
+    {
+      "id": "LOG_1781842798426",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Xóa vĩnh viễn phả lục nhân thân",
+      "target": "NV-011",
+      "time": "2026-06-19T04:19:58.426Z"
+    },
+    {
+      "id": "LOG_1781843880229",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Cập nhật trực tiếp hồ sơ",
+      "target": "Nguyễn Văn Xiêm",
+      "time": "2026-06-19T04:38:00.229Z"
+    },
+    {
+      "id": "LOG_1781843895061",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Cập nhật trực tiếp hồ sơ",
+      "target": "Nguyễn Văn An",
+      "time": "2026-06-19T04:38:15.061Z"
+    },
+    {
+      "id": "LOG_1781845027452",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Cập nhật trực tiếp hồ sơ",
+      "target": "Nguyễn Văn Cường",
+      "time": "2026-06-19T04:57:07.452Z"
+    },
+    {
+      "id": "LOG_1781845215193",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Cập nhật trực tiếp hồ sơ",
+      "target": "Nguyễn Văn ",
+      "time": "2026-06-19T05:00:15.193Z"
+    },
+    {
+      "id": "LOG_1781845241840",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Cập nhật trực tiếp hồ sơ",
+      "target": "Vũ Thị Hương",
+      "time": "2026-06-19T05:00:41.840Z"
+    },
+    {
+      "id": "LOG_1781845352192",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Cập nhật trực tiếp hồ sơ",
+      "target": "Nguyễn Văn Xiêm",
+      "time": "2026-06-19T05:02:32.192Z"
+    },
+    {
+      "id": "LOG_1781845628224",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Gửi đề nghị sửa đổi thông tin",
+      "target": "Nguyễn Văn Xiêm",
+      "time": "2026-06-19T05:07:08.224Z"
+    },
+    {
+      "id": "LOG_1781845652047",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Phê duyệt sửa phả bạ [address]",
+      "target": "Nguyễn Văn Xiêm",
+      "time": "2026-06-19T05:07:32.047Z"
+    },
+    {
+      "id": "LOG_1781846043919",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Gửi đề nghị sửa đổi thông tin",
+      "target": "Nguyễn Văn Xiêm",
+      "time": "2026-06-19T05:14:03.919Z"
+    },
+    {
+      "id": "LOG_1781846186733",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Phê duyệt sửa phả bạ [achievements]",
+      "target": "Nguyễn Văn Xiêm",
+      "time": "2026-06-19T05:16:26.733Z"
+    },
+    {
+      "id": "LOG_1781846257637",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Cập nhật báo danh dự lễ",
+      "target": "EV_001",
+      "time": "2026-06-19T05:17:37.637Z"
+    },
+    {
+      "id": "LOG_1781846424260",
+      "user": "atnguyen.skayer@gmail.com",
+      "action": "Xóa vĩnh viễn phả lục nhân thân",
+      "target": "NV-004",
+      "time": "2026-06-19T05:20:24.260Z"
+    }
+  ]
+}

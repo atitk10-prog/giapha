@@ -1,0 +1,6 @@
+{
+  "name": "Hệ Thống Gia Phả Số Tộc Nguyễn",
+  "description": "Hệ thống quản lý gia phả trực tuyến thông minh, số hóa phả hệ tộc, theo dõi phân bố địa dư, truyền thống dòng họ, tích hợp AI hỗ trợ.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
