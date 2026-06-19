@@ -8,6 +8,7 @@ interface AddMemberModalProps {
   parentName?: string;
   spouseName?: string;
   parentGender?: Gender;
+  spouseGender?: Gender;
   parentSpouses?: ClanMember[];
   onClose: () => void;
   onSave: (newMember: ClanMember) => void;
@@ -20,6 +21,7 @@ export default function AddMemberModal({
   parentName, 
   spouseName, 
   parentGender,
+  spouseGender,
   parentSpouses,
   onClose, 
   onSave, 
@@ -31,7 +33,7 @@ export default function AddMemberModal({
   const [formData, setFormData] = useState({
     fullName: '',
     nickname: '',
-    gender: spouseId ? (spouseName ? '' : Gender.FEMALE) : Gender.MALE,
+    gender: spouseId ? (spouseGender === Gender.FEMALE ? Gender.MALE : Gender.FEMALE) : Gender.MALE,
     dob: '',
     birthOrder: '',
     isDeceased: false,

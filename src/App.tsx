@@ -636,6 +636,7 @@ export default function App() {
           parentName={addingRelation.parentName}
           spouseName={addingRelation.spouseName}
           parentGender={addingRelation.parentId ? members.find(m => m.id === addingRelation.parentId)?.gender : undefined}
+          spouseGender={addingRelation.spouseId ? members.find(m => m.id === addingRelation.spouseId)?.gender : undefined}
           parentSpouses={addingRelation.parentId ? members.filter(m => m.spouseId === addingRelation.parentId || addingRelation.parentId === m.spouseId) : []}
           currentBranchId={members.find(m => m.id === (addingRelation.parentId || addingRelation.spouseId))?.branchId || 'CHI_TRUONG'}
           onClose={() => setAddingRelation(null)}
