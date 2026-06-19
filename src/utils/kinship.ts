@@ -18,13 +18,22 @@ export function calculateKinship(
   // Find path to root for a member
   const getPathToRoot = (memberId: string): string[] => {
     const path: string[] = [];
+    const visited = new Set<string>();
     let currentId: string | null = memberId;
     while (currentId) {
+      if (visited.has(currentId)) {
+         break; // Prevent infinite loops from circular references like spouseId pointing to each other
+      }
+      visited.add(currentId);
       path.push(currentId);
+      
       const m = memberMap.get(currentId);
       if (!m) break;
-      // If it's a spouse, their path goes through their primary husband/wife
-      if (m.spouseId && memberMap.get(m.spouseId)) {
+      
+      // We only traverse UP the tree. 
+      // If it's a spouse, we should go to their primary bloodline partner FIRST, then up to father/mother.
+      // But we must NOT go back and forth between spouses.
+      if (m.spouseId && memberMap.get(m.spouseId) && !visited.has(m.spouseId)) {
         currentId = m.spouseId;
       } else {
         currentId = m.fatherId || m.motherId || null;
