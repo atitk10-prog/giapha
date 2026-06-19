@@ -62,6 +62,15 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
     return Array.from(branches);
   }, [members]);
 
+  const maxGeneration = useMemo(() => {
+    if (!members || members.length === 0) return 5;
+    return Math.max(...members.map(m => m.generation || 1), 5);
+  }, [members]);
+  
+  const generationsList = useMemo(() => {
+    return Array.from({ length: maxGeneration }, (_, i) => i + 1);
+  }, [maxGeneration]);
+
   // Track the highlight node IDs based on search
   const highlightedIds = useMemo(() => {
     if (!searchQuery.trim()) return new Set<string>();
@@ -384,11 +393,9 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
           onChange={(e) => setFilterGeneration(e.target.value)}
         >
           <option value="ALL">Tất cả Đời</option>
-          <option value="1">Đời 1</option>
-          <option value="2">Đời 2</option>
-          <option value="3">Đời 3</option>
-          <option value="4">Đời 4</option>
-          <option value="5">Đời 5</option>
+          {generationsList.map(gen => (
+            <option key={gen} value={String(gen)}>Đời {gen}</option>
+          ))}
         </select>
 
         {/* Zoom Controls Buttons */}
@@ -423,7 +430,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
       >
         {/* Sticky Generation Labels */}
         <div className="absolute left-0 top-0 bottom-0 w-32 pointer-events-none z-20 overflow-hidden">
-          {[1, 2, 3, 4, 5].map((gen) => {
+          {generationsList.map((gen) => {
             const trackY = 120 + (gen - 1) * 260;
             const screenY = transform.y + trackY * transform.scale;
             
@@ -450,7 +457,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
         <svg className="w-full h-full">
           <g style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: '0 0', transition: isDragging ? 'none' : 'transform 0.15s ease-out' }}>
             {/* Generation Background Tracks */}
-          {[1, 2, 3, 4, 5].map((gen) => {
+          {generationsList.map((gen) => {
             const trackY = 120 + (gen - 1) * 260;
             return (
               <g key={gen} style={{ opacity: filterGeneration !== 'ALL' && filterGeneration !== String(gen) ? 0.15 : 1 }}>
