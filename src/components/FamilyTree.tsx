@@ -336,62 +336,59 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
     }>
       
       {/* Top Controller Panel */}
-      <div className="absolute top-4 left-4 right-4 z-10 flex flex-col sm:flex-row gap-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border border-gray-100 dark:border-zinc-800 p-3 rounded-2xl shadow-lg">
-        {!isFullscreen && (
-          <>
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500 dark:text-zinc-500" />
-              <input
-                type="text"
-                placeholder="Tìm theo tên, đời, nghề nghiệp..."
-                className="w-full pl-9 pr-4 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-zinc-100"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+      <div className={`absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-10 flex flex-row flex-wrap sm:flex-nowrap ${isFullscreen ? 'gap-1.5 p-1.5 rounded-xl bg-white/80 dark:bg-zinc-900/80 shadow' : 'gap-3 p-3 rounded-2xl bg-white/90 dark:bg-zinc-900/90 shadow-lg'} backdrop-blur border border-gray-100 dark:border-zinc-800 transition-all`}>
+        
+        {/* Search Input */}
+        <div className="relative flex-1 min-w-[120px]">
+          <Search className={`absolute left-2.5 ${isFullscreen ? 'top-1.5 h-3.5 w-3.5' : 'top-2.5 h-4 w-4'} text-gray-500 dark:text-zinc-500`} />
+          <input
+            type="text"
+            placeholder={isFullscreen ? "Tìm..." : "Tìm theo tên, đời, nghề nghiệp..."}
+            className={`w-full ${isFullscreen ? 'pl-7 pr-2 py-1 text-xs' : 'pl-9 pr-4 py-1.5 text-sm'} rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-950/80 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:text-zinc-100`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
 
-            {/* Branch Filter */}
-            <select
-              className="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-950 text-sm focus:outline-none dark:text-zinc-100"
-              value={filterBranch}
-              onChange={(e) => setFilterBranch(e.target.value)}
-            >
-              <option value="ALL">Tất cả Chi họ</option>
-              {branchOptions.map(b => (
-                <option key={b} value={b}>{b === 'CHI_TRUONG' ? 'Chi Trưởng' : 'Chi Thứ Một'}</option>
-              ))}
-            </select>
+        {/* Branch Filter */}
+        <select
+          className={`${isFullscreen ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'} rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-950/80 focus:outline-none dark:text-zinc-100`}
+          value={filterBranch}
+          onChange={(e) => setFilterBranch(e.target.value)}
+        >
+          <option value="ALL">Tất cả Chi</option>
+          {branchOptions.map(b => (
+            <option key={b} value={b}>{b === 'CHI_TRUONG' ? 'Trưởng' : 'Thứ 1'}</option>
+          ))}
+        </select>
 
-            {/* Generation Filter */}
-            <select
-              className="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-950 text-sm focus:outline-none dark:text-zinc-100"
-              value={filterGeneration}
-              onChange={(e) => setFilterGeneration(e.target.value)}
-            >
-              <option value="ALL">Tất cả Đời thế (1 - 5)</option>
-              <option value="1">Đời thứ 1 (Cụ khởi tổ)</option>
-              <option value="2">Đời thứ 2</option>
-              <option value="3">Đời thứ 3</option>
-              <option value="4">Đời thứ 4</option>
-              <option value="5">Đời thứ 5</option>
-            </select>
-          </>
-        )}
+        {/* Generation Filter */}
+        <select
+          className={`${isFullscreen ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'} rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-950/80 focus:outline-none dark:text-zinc-100`}
+          value={filterGeneration}
+          onChange={(e) => setFilterGeneration(e.target.value)}
+        >
+          <option value="ALL">Tất cả Đời</option>
+          <option value="1">Đời 1</option>
+          <option value="2">Đời 2</option>
+          <option value="3">Đời 3</option>
+          <option value="4">Đời 4</option>
+          <option value="5">Đời 5</option>
+        </select>
 
         {/* Zoom Controls Buttons */}
-        <div className={`flex gap-2 items-center ${!isFullscreen ? 'border-l dark:border-zinc-800 pl-3' : 'w-full justify-end'}`}>
-          <button type="button" onClick={zoomIn} className="p-1.5 rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-amber-100 transition-all">
-            <ZoomIn className="h-4 w-4 text-gray-700 dark:text-zinc-300" />
+        <div className={`flex gap-1 sm:gap-2 items-center ${!isFullscreen ? 'border-l dark:border-zinc-800 pl-2 sm:pl-3' : 'pl-1'}`}>
+          <button type="button" onClick={zoomIn} className={`${isFullscreen ? 'p-1' : 'p-1.5'} rounded-lg bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-amber-100 transition-all`}>
+            <ZoomIn className={`${isFullscreen ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-gray-700 dark:text-zinc-300`} />
           </button>
-          <button type="button" onClick={zoomOut} className="p-1.5 rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-amber-100 transition-all">
-            <ZoomOut className="h-4 w-4 text-gray-700 dark:text-zinc-300" />
+          <button type="button" onClick={zoomOut} className={`${isFullscreen ? 'p-1' : 'p-1.5'} rounded-lg bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-amber-100 transition-all`}>
+            <ZoomOut className={`${isFullscreen ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-gray-700 dark:text-zinc-300`} />
           </button>
-          <button type="button" onClick={resetPan} className="px-2.5 py-1 text-xs rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-medium shadow transition-all">
+          <button type="button" onClick={resetPan} className={`${isFullscreen ? 'px-1.5 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs'} rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-medium shadow transition-all whitespace-nowrap`}>
             Mặc định
           </button>
-          <button type="button" onClick={() => setIsFullscreen(!isFullscreen)} className="p-1.5 rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-amber-100 transition-all ml-1">
-            {isFullscreen ? <Minimize className="h-4 w-4 text-gray-700 dark:text-zinc-300" /> : <Maximize className="h-4 w-4 text-gray-700 dark:text-zinc-300" />}
+          <button type="button" onClick={() => setIsFullscreen(!isFullscreen)} className={`${isFullscreen ? 'p-1' : 'p-1.5'} rounded-lg bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-amber-100 transition-all sm:ml-1`}>
+            {isFullscreen ? <Minimize className={`${isFullscreen ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-gray-700 dark:text-zinc-300`} /> : <Maximize className="h-4 w-4 text-gray-700 dark:text-zinc-300" />}
           </button>
         </div>
       </div>
