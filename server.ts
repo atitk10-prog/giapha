@@ -11,11 +11,13 @@ import { google } from "googleapis";
 dotenv.config();
 
 // Derive dirname for robust path handling in ESM & CJS
-let _dirname = "";
+let _dirname = process.cwd();
 try {
-  _dirname = path.dirname(fileURLToPath(import.meta.url));
+  if (typeof import.meta !== "undefined" && import.meta.url) {
+    _dirname = path.dirname(fileURLToPath(import.meta.url));
+  }
 } catch (e) {
-  _dirname = process.cwd();
+  // fallback to cwd
 }
 
 const app = express();
