@@ -225,6 +225,7 @@ export default function Scholarships({
               <Award className="h-5 w-5 group-hover:rotate-12 transition-transform" />
             </div>
 
+            <div className="space-y-2.5">
               <div className="flex justify-between items-start">
                 <span className="text-[9.5px] font-mono text-gray-400 uppercase tracking-widest block">NĂM HỌC {record.year}</span>
                 {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
