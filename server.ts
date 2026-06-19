@@ -68,7 +68,7 @@ import {
   initialScholarships, 
   initialDocuments, 
   initialAlbums 
-} from "./src/initialData";
+} from "./src/initialData.js";
 
 // Convert tabular sheet data back to JSON objects
 function parseFromSheet(rows: any[]) {
