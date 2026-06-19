@@ -365,7 +365,7 @@ export default function LibraryManager({
                   </div>
 
                   <div>
-                    <label className="block text-gray-500 font-bold mb-1">Chọn Tệp tin (Tối đa 4.5MB/tệp)</label>
+                    <label className="block text-gray-500 font-bold mb-1">Chọn Tệp tin</label>
                     <input
                       type="file"
                       multiple={!editingId}
@@ -374,6 +374,10 @@ export default function LibraryManager({
                     />
                     {editingId && <span className="text-[9px] text-gray-400 mt-1 block">Để trống nếu muốn giữ tệp cũ</span>}
                   </div>
+                </div>
+
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl text-red-600 dark:text-red-400 text-[10px] sm:text-xs">
+                  <span className="font-bold">Lưu ý quan trọng:</span> Hệ thống lưu trữ (Vercel) hiện tại chỉ cho phép tải lên **tối đa 4.5 MB** cho mỗi lần tải. Nếu bạn có tệp nén hoặc ảnh dung lượng lớn hơn 4.5 MB, trình duyệt sẽ tự động chặn lại. Vui lòng chia nhỏ tệp nếu cần thiết!
                 </div>
 
                 <div className="flex justify-end pt-1">
