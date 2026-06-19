@@ -62,6 +62,13 @@ export default function App() {
   // Sync Toast State
   const [syncToast, setSyncToast] = useState<{ show: boolean, message: string }>({ show: false, message: '' });
 
+  // Admin authentication state
+  const [adminPasswordVerified, setAdminPasswordVerified] = useState<boolean>(false);
+  const [showAdminLogin, setShowAdminLogin] = useState<boolean>(false);
+  const [adminPasswordInput, setAdminPasswordInput] = useState<string>('');
+  const [adminLoginError, setAdminLoginError] = useState<string>('');
+  const [isAdminLoggingIn, setIsAdminLoggingIn] = useState<boolean>(false);
+
   // Fetch initial family data on program boot
   useEffect(() => {
     fetchFamilyDatabase();
@@ -94,16 +101,49 @@ export default function App() {
     try {
       const res = await fetch('/api/family-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-password': adminPasswordInput 
+        },
         body: JSON.stringify(newState)
       });
       const data = await res.json();
-      if (data.success && data.message.includes('Google Sheets')) {
-        setSyncToast({ show: true, message: data.message });
-        setTimeout(() => setSyncToast({ show: false, message: '' }), 4000);
+      if (!data.success && data.error) {
+        if (data.error.includes("Unauthorized")) {
+           alert("Lỗi bảo mật: Sai mật mã quản trị. Vui lòng đăng nhập lại.");
+           setAdminPasswordVerified(false);
+           return;
+        }
+        throw new Error(data.error);
+      }
+      setSyncToast({ show: true, message: `Lưu trữ ${members.length} Đinh thành công!` });
+      setTimeout(() => setSyncToast({ show: false, message: '' }), 3000);
+    } catch (e: any) {
+      alert("Chưa thể cập nhật! Lỗi: " + e.message);
+    }
+  };
+
+  const handleAdminLogin = async () => {
+    setIsAdminLoggingIn(true);
+    setAdminLoginError('');
+    try {
+      const res = await fetch('/api/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: adminPasswordInput })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAdminPasswordVerified(true);
+        setShowAdminLogin(false);
+        setActiveTab('admin');
+      } else {
+        setAdminLoginError(data.error || 'Mật mã không chính xác!');
       }
     } catch (e) {
-      console.error("Failed to sync to server", e);
+      setAdminLoginError('Lỗi kết nối máy chủ.');
+    } finally {
+      setIsAdminLoggingIn(false);
     }
   };
 
@@ -848,15 +888,19 @@ export default function App() {
             <Map className="h-4 w-4" /> Bản đồ phân cư
           </button>
 
-          {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
-            <button
-              type="button"
-              onClick={() => setActiveTab('admin')}
-              className={`px-4 py-2.5 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all ${activeTab === 'admin' ? 'bg-amber-800 text-white shadow-md' : 'bg-white hover:bg-gray-100 dark:bg-zinc-900 dark:border-zinc-850 border-amber-200 dark:border-zinc-850 border text-gray-650'}`}
-            >
-              <Settings className="h-4 w-4" /> Bản trị Trưởng tộc
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (adminPasswordVerified) {
+                setActiveTab('admin');
+              } else {
+                setShowAdminLogin(true);
+              }
+            }}
+            className={`px-4 py-2.5 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all ${activeTab === 'admin' ? 'bg-amber-800 text-white shadow-md' : 'bg-white hover:bg-gray-100 dark:bg-zinc-900 dark:border-zinc-850 border-amber-200 dark:border-zinc-850 border text-gray-650'}`}
+          >
+            {adminPasswordVerified ? <Settings className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />} Bản trị Trưởng tộc
+          </button>
         </section>
 
         {/* Tab display element block wrapper */}
@@ -889,6 +933,42 @@ export default function App() {
             setSelectedMemberId(undefined);
           }}
         />
+      )}
+
+      {/* Admin Password Login Modal */}
+      {showAdminLogin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800">
+            <h3 className="text-lg font-bold mb-2 flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-amber-600" /> Xác thực Quản trị</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Vui lòng nhập mật mã quản trị dòng họ để truy cập tính năng chỉnh sửa.</p>
+            <input 
+              type="password" 
+              className="w-full px-3 py-2 border rounded-lg text-sm mb-2 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+              placeholder="Nhập mật mã..."
+              value={adminPasswordInput}
+              onChange={(e) => setAdminPasswordInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAdminLogin();
+              }}
+            />
+            {adminLoginError && <p className="text-xs text-red-500 mb-4">{adminLoginError}</p>}
+            <div className="flex justify-end gap-2 mt-4">
+              <button 
+                className="px-4 py-2 text-xs text-gray-500 hover:bg-gray-100 rounded-lg dark:hover:bg-zinc-800"
+                onClick={() => setShowAdminLogin(false)}
+              >
+                Hủy
+              </button>
+              <button 
+                className="px-4 py-2 text-xs bg-amber-700 hover:bg-amber-800 text-white rounded-lg flex items-center gap-2"
+                onClick={handleAdminLogin}
+                disabled={isAdminLoggingIn}
+              >
+                {isAdminLoggingIn ? "Đang kiểm tra..." : "Xác nhận"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Footer credits humbles */}

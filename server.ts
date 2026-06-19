@@ -261,8 +261,34 @@ async function sendTelegramNotification(message: string) {
 }
 
 // API Routes
+
+// Require Admin Password Middleware
+const requireAdmin = (req: any, res: any, next: any) => {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) {
+    return next(); // If not configured, allow access
+  }
+  const providedPassword = req.headers['x-admin-password'] || req.body.password;
+  if (providedPassword === adminPassword) {
+    return next();
+  }
+  return res.status(401).json({ error: "Unauthorized. Mật mã quản trị không chính xác." });
+};
+
 app.get(["/api/test", "/test"], (req, res) => {
   res.json({ ok: true, url: req.url, vercel: !!process.env.VERCEL });
+});
+
+app.post(["/api/verify-password", "/verify-password"], (req, res) => {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const providedPassword = req.body.password;
+  if (!adminPassword) {
+    return res.json({ success: true, message: "No password configured." });
+  }
+  if (providedPassword === adminPassword) {
+    return res.json({ success: true });
+  }
+  return res.status(401).json({ success: false, error: "Incorrect password" });
 });
 
 // 1. Core data retrieval helper
@@ -272,7 +298,7 @@ app.get(["/api/family-data", "/family-data"], async (req, res) => {
 });
 
 // 2. Core data update helper
-app.post(["/api/family-data", "/family-data"], async (req, res) => {
+app.post(["/api/family-data", "/family-data"], requireAdmin, async (req, res) => {
   try {
     const updatedState = req.body;
     if (!updatedState.members || !updatedState.branches) {
