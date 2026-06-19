@@ -6,6 +6,8 @@ import { fileURLToPath } from "url";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { google } from "googleapis";
+import multer from "multer";
+import stream from "stream";
 
 // Load env variables
 dotenv.config();
@@ -47,17 +49,28 @@ if (GOOGLE_PRIVATE_KEY && GOOGLE_PRIVATE_KEY.startsWith('"') && GOOGLE_PRIVATE_K
 const GOOGLE_SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID;
 
 let sheets: any = null;
+let drive: any = null;
+
 if (GOOGLE_SERVICE_ACCOUNT_EMAIL && GOOGLE_PRIVATE_KEY) {
   const auth = new google.auth.JWT({
     email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
     key: GOOGLE_PRIVATE_KEY,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+    scopes: [
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/drive.file"
+    ]
   });
   sheets = google.sheets({ version: "v4", auth });
-  console.log("Google Sheets API initialized");
+  drive = google.drive({ version: "v3", auth });
+  console.log("Google Sheets & Drive API initialized");
 } else {
-  console.warn("WARNING: Google Sheets credentials not fully set in .env. Falling back to local JSON.");
+  console.warn("WARNING: Google credentials not fully set in .env. Falling back to local JSON.");
 }
+
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 4.5 * 1024 * 1024 } // Vercel limit is 4.5MB
+});
 
 // Initial imports (we'll fetch initial collections statically if data doesn't exist)
 import { 
@@ -384,6 +397,68 @@ app.post(["/api/family-data", "/family-data"], requireAdmin, async (req, res) =>
 
     res.json({ success: true, message: `Đã lưu trữ dữ liệu gia phả thành công sang ${destination}.` });
   } catch (e: any) {
+    console.error("AI Analysis error:", e);
+    res.status(500).json({ error: e.message || "Lỗi khi phân tích" });
+  }
+});
+
+// 4. Document Upload endpoint using Google Drive
+app.post("/api/upload-document", upload.array('files', 10), async (req: any, res: any) => {
+  try {
+    if (!drive) {
+      return res.status(400).json({ error: "Chưa cấu hình kết nối Google Drive API. Vui lòng kiểm tra lại cấu hình." });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "Không tìm thấy tệp nào được tải lên." });
+    }
+
+    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+    const uploadedDocs = [];
+
+    for (const file of req.files) {
+      const bufferStream = new stream.PassThrough();
+      bufferStream.end(file.buffer);
+
+      const fileMetadata: any = {
+        name: file.originalname,
+      };
+
+      if (folderId) {
+        fileMetadata.parents = [folderId];
+      }
+
+      const media = {
+        mimeType: file.mimetype,
+        body: bufferStream,
+      };
+
+      const response = await drive.files.create({
+        requestBody: fileMetadata,
+        media: media,
+        fields: "id, name, webViewLink, webContentLink",
+      });
+
+      // Set public permission so anyone with the link can view/download
+      await drive.permissions.create({
+        fileId: response.data.id,
+        requestBody: {
+          role: "reader",
+          type: "anyone",
+        },
+      });
+
+      uploadedDocs.push({
+        name: response.data.name,
+        url: response.data.webViewLink,
+        downloadUrl: response.data.webContentLink,
+        size: (file.size / (1024 * 1024)).toFixed(2) + " MB"
+      });
+    }
+
+    res.json({ success: true, files: uploadedDocs });
+  } catch (e: any) {
+    console.error("Drive upload error:", e);
     res.status(500).json({ error: e.message });
   }
 });

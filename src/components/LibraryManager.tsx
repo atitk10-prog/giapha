@@ -27,7 +27,8 @@ export default function LibraryManager({
   // New document fields
   const [docName, setDocName] = useState('');
   const [category, setCategory] = useState<'gia phả' | 'tộc ước' | 'khuyến học' | 'nhà thờ' | 'khác'>('gia phả');
-  const [fileSize, setFileSize] = useState('1.5 MB');
+  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Filter docs
   const filteredDocs = documents.filter(doc => {
@@ -36,37 +37,98 @@ export default function LibraryManager({
     return matchSearch && matchFolder;
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!docName) return;
+    if (!docName && !selectedFiles) return;
 
     if (editingId && onUpdateDocument) {
+      // For updates, we allow updating just metadata if no new file is selected
+      let fileUrl = '#';
+      let docSize = '0 MB';
+      let downloadUrl = '#';
+      const existingDoc = documents.find(d => d.id === editingId);
+      if (existingDoc) {
+        fileUrl = existingDoc.url;
+        docSize = existingDoc.size;
+        downloadUrl = existingDoc.downloadUrl || '#';
+      }
+
+      if (selectedFiles && selectedFiles.length > 0) {
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append('files', selectedFiles[0]);
+        try {
+          const res = await fetch('/api/upload-document', { method: 'POST', body: formData });
+          const data = await res.json();
+          if (data.success && data.files.length > 0) {
+            fileUrl = data.files[0].url;
+            downloadUrl = data.files[0].downloadUrl;
+            docSize = data.files[0].size;
+          } else {
+            alert('Lỗi tải tệp lên Drive: ' + (data.error || 'Unknown error'));
+            setIsUploading(false);
+            return;
+          }
+        } catch (err: any) {
+          alert('Lỗi kết nối khi tải tệp: ' + err.message);
+          setIsUploading(false);
+          return;
+        }
+        setIsUploading(false);
+      }
+
       onUpdateDocument({
         id: editingId,
-        name: docName.endsWith('.pdf') || docName.endsWith('.doc') ? docName : `${docName}.pdf`,
+        name: docName || (selectedFiles && selectedFiles[0] ? selectedFiles[0].name : 'Tài liệu không tên'),
         category: category === 'khác' ? 'nhà thờ' : category, // Safe mapping
-        fileType: docName.endsWith('.doc') ? 'doc' : 'pdf',
-        size: fileSize,
-        url: '#',
+        fileType: docName.endsWith('.doc') || docName.endsWith('.docx') ? 'doc' : (docName.endsWith('.zip') || docName.endsWith('.rar') ? 'zip' : 'pdf'),
+        size: docSize,
+        url: fileUrl,
+        downloadUrl: downloadUrl,
         downloadCount: documents.find(d => d.id === editingId)?.downloadCount || 0,
         updatedAt: new Date().toISOString().split('T')[0]
       });
       alert('Đã cập nhật thông tin tài liệu thành công!');
     } else if (onAddDocument) {
-      onAddDocument({
-        id: `DOC_${Date.now()}`,
-        name: docName.endsWith('.pdf') || docName.endsWith('.doc') ? docName : `${docName}.pdf`,
-        category: category === 'khác' ? 'nhà thờ' : category, // Safe mapping
-        fileType: docName.endsWith('.doc') ? 'doc' : 'pdf',
-        size: fileSize,
-        url: '#',
-        downloadCount: 0,
-        updatedAt: new Date().toISOString().split('T')[0]
-      });
-      alert('Đã tải lên tệp phả hệ lưu trữ thành công lên Google Drive dòng họ!');
+      if (!selectedFiles || selectedFiles.length === 0) {
+        alert('Vui lòng chọn ít nhất 1 tệp để tải lên!');
+        return;
+      }
+      setIsUploading(true);
+      const formData = new FormData();
+      for (let i = 0; i < selectedFiles.length; i++) {
+        formData.append('files', selectedFiles[i]);
+      }
+
+      try {
+        const res = await fetch('/api/upload-document', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success && data.files) {
+          data.files.forEach((fileInfo: any, index: number) => {
+            onAddDocument({
+              id: `DOC_${Date.now()}_${index}`,
+              name: docName ? (index === 0 ? docName : `${docName} (${index})`) : fileInfo.name,
+              category: category === 'khác' ? 'nhà thờ' : category,
+              fileType: fileInfo.name.endsWith('.doc') || fileInfo.name.endsWith('.docx') ? 'doc' : (fileInfo.name.endsWith('.zip') || fileInfo.name.endsWith('.rar') ? 'zip' : 'pdf'),
+              size: fileInfo.size,
+              url: fileInfo.url,
+              downloadUrl: fileInfo.downloadUrl,
+              downloadCount: 0,
+              updatedAt: new Date().toISOString().split('T')[0]
+            });
+          });
+          alert(`Đã tải lên thành công ${data.files.length} tệp lên Google Drive dòng họ!`);
+        } else {
+          alert('Lỗi tải tệp lên Drive: ' + (data.error || 'Vui lòng kiểm tra cấu hình GOOGLE_DRIVE_FOLDER_ID'));
+        }
+      } catch (err: any) {
+        alert('Lỗi kết nối khi tải tệp: ' + err.message);
+      }
+      setIsUploading(false);
     }
     
     setDocName('');
+    setSelectedFiles(null);
     setShowAddForm(false);
     setEditingId(null);
   };
@@ -74,7 +136,7 @@ export default function LibraryManager({
   const handleEdit = (doc: ClanDocument) => {
     setDocName(doc.name);
     setCategory(doc.category as any);
-    setFileSize(doc.size);
+    setSelectedFiles(null);
     setEditingId(doc.id);
     setShowAddForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -210,7 +272,13 @@ export default function LibraryManager({
                     <button type="button"
                       onClick={() => {
                         if (onIncrementDownloads) onIncrementDownloads(doc.id);
-                        alert(`Đang tải tệp tin "${doc.name}" xuống máy từ thư mục Google Drive của dòng tộc...`);
+                        if (doc.downloadUrl && doc.downloadUrl !== '#') {
+                          window.open(doc.downloadUrl, '_blank');
+                        } else if (doc.url && doc.url !== '#') {
+                          window.open(doc.url, '_blank');
+                        } else {
+                          alert(`Đang tải tệp tin "${doc.name}" xuống máy... (Đây là tệp mô phỏng không có URL thực)`);
+                        }
                       }}
                       className="p-1.5 rounded-lg bg-gray-50 hover:bg-amber-100 text-gray-500 hover:text-amber-800 dark:bg-zinc-800 dark:hover:bg-amber-950 transition-all border active:scale-95"
                       title="Mở tài liệu / Tải về Máy"
@@ -243,22 +311,21 @@ export default function LibraryManager({
               <form onSubmit={handleSubmit} className="p-4 bg-amber-50/10 dark:bg-zinc-950/50 border border-amber-200/50 rounded-2xl space-y-3.5">
                 <div className="flex justify-between items-center">
                   <span className="text-[11px] font-bold text-amber-800 dark:text-amber-400 block uppercase tracking-wider flex items-center gap-1">
-                    <UploadCloud className="h-4.5 w-4.5 text-amber-700" /> {editingId ? 'CẬP NHẬT TÀI LIỆU LƯU TRỮ' : 'TỦ ĐỰNG TÀI LIỆU DÒNG TỘC (MÔ PHỎNG GOOGLE DRIVE)'}
+                    <UploadCloud className="h-4.5 w-4.5 text-amber-700" /> {editingId ? 'CẬP NHẬT TÀI LIỆU LƯU TRỮ' : 'TẢI TÀI LIỆU LÊN GOOGLE DRIVE DÒNG HỌ'}
                   </span>
-                  <button type="button" onClick={() => { setShowAddForm(false); setEditingId(null); setDocName(''); }} className="text-xs text-gray-500 hover:text-red-500 px-2 py-1 bg-gray-100 rounded-lg">
+                  <button type="button" onClick={() => { setShowAddForm(false); setEditingId(null); setDocName(''); setSelectedFiles(null); }} className="text-xs text-gray-500 hover:text-red-500 px-2 py-1 bg-gray-100 rounded-lg">
                     Hủy
                   </button>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div className="sm:col-span-1">
-                    <label className="block text-gray-500 font-bold mb-1">Tên tệp lưu bạ</label>
+                    <label className="block text-gray-500 font-bold mb-1">Tên tệp (không bắt buộc)</label>
                     <input
                       type="text"
-                      placeholder="Gia_pha_nganh_truong.pdf..."
+                      placeholder="Sẽ lấy theo tên file nếu để trống"
                       value={docName}
                       onChange={e => setDocName(e.target.value)}
-                      required
                       className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none dark:text-zinc-100"
                     />
                   </div>
@@ -278,23 +345,24 @@ export default function LibraryManager({
                   </div>
 
                   <div>
-                    <label className="block text-gray-500 font-bold mb-1">Quy cách dung lượng</label>
+                    <label className="block text-gray-500 font-bold mb-1">Chọn Tệp tin (Tối đa 4.5MB/tệp)</label>
                     <input
-                      type="text"
-                      placeholder="Ví dụ: 4.8 MB"
-                      value={fileSize}
-                      onChange={e => setFileSize(e.target.value)}
-                      className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none dark:text-zinc-100"
+                      type="file"
+                      multiple={!editingId}
+                      onChange={e => setSelectedFiles(e.target.files)}
+                      className="w-full p-2 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none dark:text-zinc-100 text-[10px]"
                     />
+                    {editingId && <span className="text-[9px] text-gray-400 mt-1 block">Để trống nếu muốn giữ tệp cũ</span>}
                   </div>
                 </div>
 
                 <div className="flex justify-end pt-1">
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow flex items-center gap-1 active:scale-95 transition-transform"
+                    disabled={isUploading}
+                    className="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 disabled:bg-gray-400 text-white text-xs font-bold shadow flex items-center gap-1 active:scale-95 transition-transform"
                   >
-                    <Plus className="h-4 w-4" /> {editingId ? 'Cập nhật tài liệu' : 'Tải lên Lưu Thư Quán dòng họ'}
+                    <Plus className="h-4 w-4" /> {isUploading ? 'Đang tải lên...' : (editingId ? 'Cập nhật tài liệu' : 'Tải lên Lưu Thư Quán dòng họ')}
                   </button>
                 </div>
               </form>
