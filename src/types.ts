@@ -126,3 +126,8 @@ export interface ActivityLog {
   target: string;
   time: string;
 }
+
+export interface ClanSettings {
+  adminPassword?: string;
+  recoveryEmail?: string;
+}

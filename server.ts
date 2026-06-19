@@ -120,7 +120,7 @@ function flattenToSheet(items: any[]) {
 async function loadDatabaseState() {
   if (sheets && GOOGLE_SPREADSHEET_ID) {
     try {
-      const ranges = ["Members", "Branches", "Events", "FundTransactions", "Scholarships", "Documents", "Albums", "Suggestions", "Logs"];
+      const ranges = ["Members", "Branches", "Events", "FundTransactions", "Scholarships", "Documents", "Albums", "Suggestions", "Logs", "Settings"];
       const response = await sheets.spreadsheets.values.batchGet({
         spreadsheetId: GOOGLE_SPREADSHEET_ID,
         ranges: ranges,
@@ -158,30 +158,11 @@ async function loadDatabaseState() {
     events: initialEvents,
     fundTransactions: initialFundTransactions,
     scholarships: initialScholarships,
-    documents: initialDocuments,
-    albums: initialAlbums,
-    suggestions: [
-      {
-        id: "SUG_001",
-        memberId: "NV-008",
-        memberName: "Nguyễn Thị Lan",
-        fieldName: "dob",
-        oldValue: "1975",
-        newValue: "1976",
-        proposedBy: "atnguyen.skayer@gmail.com",
-        proposedAt: "2026-06-17T15:00:00Z",
-        status: "chờ duyệt"
-      }
-    ] as any[],
-    logs: [
-      {
-        id: "LOG_001",
-        user: "atnguyen.skayer@gmail.com",
-        action: "Đăng nhập hệ thống",
-        target: "Hệ thống Gia Phả",
-        time: "2026-06-18T09:12:00Z"
-      }
-    ] as any[]
+    documents: [],
+    albums: [],
+    suggestions: [],
+    logs: [],
+    settings: [{ id: "admin", adminPassword: process.env.ADMIN_PASSWORD || "TraMy2026", recoveryEmail: "atnguyen.skayer@gmail.com" }]
   };
   
   if (!process.env.VERCEL) {
@@ -207,7 +188,7 @@ async function saveDatabaseState(state: any) {
 
   if (sheets && GOOGLE_SPREADSHEET_ID) {
     try {
-      const ranges = ["Members", "Branches", "Events", "FundTransactions", "Scholarships", "Documents", "Albums", "Suggestions", "Logs"];
+      const ranges = ["Members", "Branches", "Events", "FundTransactions", "Scholarships", "Documents", "Albums", "Suggestions", "Logs", "Settings"];
       const data = [];
       for (const rangeName of ranges) {
         const stateKey = rangeName.charAt(0).toLowerCase() + rangeName.slice(1);
@@ -263,11 +244,11 @@ async function sendTelegramNotification(message: string) {
 // API Routes
 
 // Require Admin Password Middleware
-const requireAdmin = (req: any, res: any, next: any) => {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) {
-    return next(); // If not configured, allow access
-  }
+const requireAdmin = async (req: any, res: any, next: any) => {
+  const state = await loadDatabaseState();
+  const settings = state.settings?.[0] || {};
+  const adminPassword = settings.adminPassword || process.env.ADMIN_PASSWORD || "TraMy2026";
+  
   const providedPassword = req.headers['x-admin-password'] || req.body.password;
   if (providedPassword === adminPassword) {
     return next();
@@ -279,21 +260,61 @@ app.get(["/api/test", "/test"], (req, res) => {
   res.json({ ok: true, url: req.url, vercel: !!process.env.VERCEL });
 });
 
-app.post(["/api/verify-password", "/verify-password"], (req, res) => {
-  const adminPassword = process.env.ADMIN_PASSWORD;
+app.post(["/api/verify-password", "/verify-password"], async (req, res) => {
+  const state = await loadDatabaseState();
+  const settings = state.settings?.[0] || {};
+  const adminPassword = settings.adminPassword || process.env.ADMIN_PASSWORD || "TraMy2026";
+  
   const providedPassword = req.body.password;
-  if (!adminPassword) {
-    return res.json({ success: true, message: "No password configured." });
-  }
   if (providedPassword === adminPassword) {
     return res.json({ success: true });
   }
   return res.status(401).json({ success: false, error: "Incorrect password" });
 });
 
+// API for Password Recovery
+app.post("/api/recover-password", async (req, res) => {
+  const { email, newPassword } = req.body;
+  const state = await loadDatabaseState();
+  const settings = state.settings?.[0] || {};
+  const recoveryEmail = settings.recoveryEmail || "atnguyen.skayer@gmail.com";
+  
+  if (email.trim().toLowerCase() === recoveryEmail.toLowerCase()) {
+    // Save new password
+    if (!state.settings) state.settings = [];
+    if (state.settings.length === 0) state.settings.push({ id: "admin" });
+    state.settings[0].adminPassword = newPassword;
+    await saveDatabaseState(state);
+    return res.json({ success: true });
+  }
+  return res.status(400).json({ success: false, error: "Email khôi phục không chính xác." });
+});
+
+// API for Change Password (requires current password)
+app.post("/api/change-password", requireAdmin, async (req, res) => {
+  const { newPassword } = req.body;
+  const state = await loadDatabaseState();
+  if (!state.settings) state.settings = [];
+  if (state.settings.length === 0) state.settings.push({ id: "admin" });
+  state.settings[0].adminPassword = newPassword;
+  await saveDatabaseState(state);
+  return res.json({ success: true });
+});
+
 // 1. Core data retrieval helper
 app.get(["/api/family-data", "/family-data"], async (req, res) => {
   const state = await loadDatabaseState();
+  // Bảo mật: Xóa thông tin nhạy cảm trước khi gửi cho client
+  if (state.settings && state.settings.length > 0) {
+    delete state.settings[0].adminPassword;
+    // Chế email: atnguyen.skayer@gmail.com -> at*******@g***.com
+    if (state.settings[0].recoveryEmail) {
+      const parts = state.settings[0].recoveryEmail.split('@');
+      if (parts.length === 2) {
+        state.settings[0].recoveryEmailHint = parts[0].substring(0, 2) + "*******@" + parts[1].substring(0, 1) + "***.com";
+      }
+    }
+  }
   res.json(state);
 });
 

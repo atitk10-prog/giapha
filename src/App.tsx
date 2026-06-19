@@ -36,7 +36,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'tree' | 'events' | 'funds' | 'scholarships' | 'library' | 'map' | 'admin'>('tree');
 
   // Simulated account states
-  const [currentUserRole, setCurrentUserRole] = useState<UserRole>(UserRole.ADMIN); // Default to admin for full exploration
+  const [currentUserRole, setCurrentUserRole] = useState<UserRole>(UserRole.GUEST); // Default to guest
   const currentUserEmail = "atnguyen.skayer@gmail.com"; // Real user details from metadata
 
   // Core Database state
@@ -68,6 +68,10 @@ export default function App() {
   const [adminPasswordInput, setAdminPasswordInput] = useState<string>('');
   const [adminLoginError, setAdminLoginError] = useState<string>('');
   const [isAdminLoggingIn, setIsAdminLoggingIn] = useState<boolean>(false);
+  const [loginMode, setLoginMode] = useState<'login' | 'forgot' | 'change'>('login');
+  const [recoveryEmailInput, setRecoveryEmailInput] = useState<string>('');
+  const [newPasswordInput, setNewPasswordInput] = useState<string>('');
+  const [recoveryHint, setRecoveryHint] = useState<string>('at*******@g***.com');
 
   // Fetch initial family data on program boot
   useEffect(() => {
@@ -88,6 +92,9 @@ export default function App() {
         setDocuments(data.documents || []);
         setSuggestions(data.suggestions || []);
         setLogs(data.logs || []);
+        if (data.settings && data.settings[0] && data.settings[0].recoveryEmailHint) {
+          setRecoveryHint(data.settings[0].recoveryEmailHint);
+        }
       }
     } catch (e) {
       console.error("Failed to load family database from Express API", e);
@@ -127,18 +134,53 @@ export default function App() {
     setIsAdminLoggingIn(true);
     setAdminLoginError('');
     try {
-      const res = await fetch('/api/verify-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: adminPasswordInput })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAdminPasswordVerified(true);
-        setShowAdminLogin(false);
-        setActiveTab('admin');
+      if (loginMode === 'forgot') {
+        const res = await fetch('/api/recover-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: recoveryEmailInput, newPassword: newPasswordInput })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('Thiết lập mật khẩu mới thành công! Vui lòng đăng nhập lại bằng mật khẩu mới.');
+          setLoginMode('login');
+          setAdminPasswordInput('');
+          setNewPasswordInput('');
+          setRecoveryEmailInput('');
+        } else {
+          setAdminLoginError(data.error || 'Email khôi phục không chính xác.');
+        }
+      } else if (loginMode === 'change') {
+        const res = await fetch('/api/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPasswordInput },
+          body: JSON.stringify({ newPassword: newPasswordInput })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('Đổi mật khẩu thành công! Vui lòng sử dụng mật khẩu mới cho các lần sau.');
+          setLoginMode('login');
+          setAdminPasswordInput(newPasswordInput);
+          setNewPasswordInput('');
+          handleAdminLogin(); // Auto login with new password
+        } else {
+          setAdminLoginError(data.error || 'Mật khẩu cũ không chính xác.');
+        }
       } else {
-        setAdminLoginError(data.error || 'Mật mã không chính xác!');
+        const res = await fetch('/api/verify-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: adminPasswordInput })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setAdminPasswordVerified(true);
+          setCurrentUserRole(UserRole.ADMIN);
+          setShowAdminLogin(false);
+          setActiveTab('admin');
+        } else {
+          setAdminLoginError(data.error || 'Mật mã không chính xác!');
+        }
       }
     } catch (e) {
       setAdminLoginError('Lỗi kết nối máy chủ.');
@@ -660,24 +702,32 @@ export default function App() {
               </button>
             )}
 
-            {/* Simulated Session Level dropdown */}
-            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-zinc-950 px-2.5 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800">
-              <ShieldCheck className="h-4 w-4 text-amber-700 dark:text-amber-500" />
+            {/* Visual Session Level dropdown */}
+            <div 
+              className="flex items-center gap-1.5 bg-gray-50 dark:bg-zinc-950 px-2.5 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 cursor-pointer hover:bg-gray-100 transition-colors"
+              onClick={() => {
+                if (currentUserRole !== UserRole.ADMIN) {
+                  setLoginMode('login');
+                  setAdminPasswordInput('');
+                  setAdminLoginError('');
+                  setShowAdminLogin(true);
+                } else {
+                  if(window.confirm('Bạn có muốn thoát quyền Quản trị viên và trở về chế độ Khách?')) {
+                    setCurrentUserRole(UserRole.GUEST);
+                    setAdminPasswordVerified(false);
+                    if (activeTab === 'admin') setActiveTab('tree');
+                    handleAddLog('Thoát chế độ Quản trị', 'Guest');
+                  }
+                }
+              }}
+              title="Nhấn để đổi quyền"
+            >
+              <ShieldCheck className={`h-4 w-4 ${currentUserRole === UserRole.ADMIN ? 'text-emerald-600 dark:text-emerald-500' : 'text-gray-400 dark:text-zinc-600'}`} />
               <div className="text-left text-[10px] trailing-none">
-                <span className="text-gray-400 block font-mono">Quyền thử nghiệm:</span>
-                <select
-                  value={currentUserRole}
-                  onChange={(e) => {
-                    setCurrentUserRole(e.target.value as UserRole);
-                    handleAddLog(`Đổi phiên vai trò người xem`, e.target.value);
-                  }}
-                  className="font-bold text-gray-950 dark:text-zinc-100 focus:outline-none bg-transparent select-none"
-                >
-                  <option value={UserRole.ADMIN}>Quản trị viên (Xem + Ghi)</option>
-                  <option value={UserRole.BRANCH_LEADER}>Trưởng Chi họ (Ghi chi mình)</option>
-                  <option value={UserRole.MEMBER}>Thành viên tộc viên (Đề xuất)</option>
-                  <option value={UserRole.GUEST}>Khách quan (Chỉ đọc sơ khởi)</option>
-                </select>
+                <span className="text-gray-400 block font-mono">Chế độ hiển thị:</span>
+                <div className="font-bold text-gray-950 dark:text-zinc-100 select-none">
+                  {currentUserRole === UserRole.ADMIN ? 'Quản trị viên (Xem + Ghi)' : 'Khách (Chỉ xem)'}
+                </div>
               </div>
             </div>
 
@@ -938,33 +988,94 @@ export default function App() {
       {/* Admin Password Login Modal */}
       {showAdminLogin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800">
-            <h3 className="text-lg font-bold mb-2 flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-amber-600" /> Xác thực Quản trị</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Vui lòng nhập mật mã quản trị dòng họ để truy cập tính năng chỉnh sửa.</p>
-            <input 
-              type="password" 
-              className="w-full px-3 py-2 border rounded-lg text-sm mb-2 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
-              placeholder="Nhập mật mã..."
-              value={adminPasswordInput}
-              onChange={(e) => setAdminPasswordInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleAdminLogin();
-              }}
-            />
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800 relative">
+            <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-amber-600" /> 
+              {loginMode === 'login' ? 'Xác thực Quản trị' : (loginMode === 'forgot' ? 'Khôi phục Mật mã' : 'Đổi Mật mã')}
+            </h3>
+            
+            {loginMode === 'login' && (
+              <>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Vui lòng nhập mật mã quản trị dòng họ để truy cập tính năng chỉnh sửa.</p>
+                <input 
+                  type="password" 
+                  className="w-full px-3 py-2 border rounded-lg text-sm mb-2 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+                  placeholder="Nhập mật mã..."
+                  value={adminPasswordInput}
+                  onChange={(e) => setAdminPasswordInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleAdminLogin(); }}
+                />
+                <div className="flex justify-between items-center mb-4">
+                  <button type="button" className="text-[10px] text-amber-600 hover:underline" onClick={() => setLoginMode('forgot')}>Quên mật khẩu?</button>
+                  <button type="button" className="text-[10px] text-gray-500 hover:underline" onClick={() => setLoginMode('change')}>Đổi mật khẩu</button>
+                </div>
+              </>
+            )}
+
+            {loginMode === 'forgot' && (
+              <>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Nhập email khôi phục (gợi ý: {recoveryHint}) và mật mã mới.</p>
+                <input 
+                  type="email" 
+                  className="w-full px-3 py-2 border rounded-lg text-sm mb-2 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+                  placeholder="Nhập chính xác email..."
+                  value={recoveryEmailInput}
+                  onChange={(e) => setRecoveryEmailInput(e.target.value)}
+                />
+                <input 
+                  type="password" 
+                  className="w-full px-3 py-2 border rounded-lg text-sm mb-4 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+                  placeholder="Mật mã mới..."
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleAdminLogin(); }}
+                />
+              </>
+            )}
+
+            {loginMode === 'change' && (
+              <>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Nhập mật mã cũ và mật mã mới để thay đổi.</p>
+                <input 
+                  type="password" 
+                  className="w-full px-3 py-2 border rounded-lg text-sm mb-2 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+                  placeholder="Mật mã hiện tại..."
+                  value={adminPasswordInput}
+                  onChange={(e) => setAdminPasswordInput(e.target.value)}
+                />
+                <input 
+                  type="password" 
+                  className="w-full px-3 py-2 border rounded-lg text-sm mb-4 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+                  placeholder="Mật mã mới..."
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleAdminLogin(); }}
+                />
+              </>
+            )}
+
             {adminLoginError && <p className="text-xs text-red-500 mb-4">{adminLoginError}</p>}
+            
             <div className="flex justify-end gap-2 mt-4">
               <button 
                 className="px-4 py-2 text-xs text-gray-500 hover:bg-gray-100 rounded-lg dark:hover:bg-zinc-800"
-                onClick={() => setShowAdminLogin(false)}
+                onClick={() => {
+                  if (loginMode !== 'login') {
+                    setLoginMode('login');
+                    setAdminLoginError('');
+                  } else {
+                    setShowAdminLogin(false);
+                  }
+                }}
               >
-                Hủy
+                {loginMode !== 'login' ? 'Quay lại' : 'Hủy'}
               </button>
               <button 
                 className="px-4 py-2 text-xs bg-amber-700 hover:bg-amber-800 text-white rounded-lg flex items-center gap-2"
                 onClick={handleAdminLogin}
                 disabled={isAdminLoggingIn}
               >
-                {isAdminLoggingIn ? "Đang kiểm tra..." : "Xác nhận"}
+                {isAdminLoggingIn ? "Đang xử lý..." : "Xác nhận"}
               </button>
             </div>
           </div>
