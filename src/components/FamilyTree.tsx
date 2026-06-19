@@ -303,7 +303,6 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
   // Zoom Controllers
   const zoomIn = () => setTransform(prev => ({ ...prev, scale: Math.min(prev.scale + 0.1, 1.8) }));
   const zoomOut = () => setTransform(prev => ({ ...prev, scale: Math.max(prev.scale - 0.1, 0.4) }));
-  const resetPan = () => setTransform({ x: 150, y: 30, scale: 0.75 });
 
   // Native wheel event listener to properly preventDefault (React's onWheel is passive)
   useEffect(() => {
