@@ -8,6 +8,8 @@ interface EventsManagerProps {
   currentUserEmail: string;
   currentUserRole: UserRole;
   onAddEvent?: (newEvent: ClanEvent) => void;
+  onUpdateEvent?: (updatedEvent: ClanEvent) => void;
+  onDeleteEvent?: (eventId: string) => void;
 }
 
 const getCategoryTheme = (cat: string) => {
@@ -29,6 +31,7 @@ export default function EventsManager({
   onAddEvent
 }: EventsManagerProps) {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   
   // New event inputs
   const [title, setTitle] = useState('');
@@ -43,7 +46,20 @@ export default function EventsManager({
     e.preventDefault();
     if (!title || !dateSolar) return;
 
-    if (onAddEvent) {
+    if (editingId && onUpdateEvent) {
+      onUpdateEvent({
+        id: editingId,
+        title,
+        description,
+        category,
+        dateSolar,
+        dateLunar: dateLunar || undefined,
+        location,
+        host,
+        attendees: events.find(ev => ev.id === editingId)?.attendees || []
+      });
+      alert('Đã cập nhật sự kiện thành công!');
+    } else if (onAddEvent) {
       onAddEvent({
         id: `EV_${Date.now()}`,
         title,
@@ -56,14 +72,34 @@ export default function EventsManager({
         attendees: []
       });
       alert('Đã thêm sự kiện dòng tộc mới thành công!');
-      setShowAddForm(false);
-      // Reset
-      setTitle('');
-      setDescription('');
-      setDateSolar('');
-      setDateLunar('');
-      setLocation('');
-      setHost('');
+    }
+
+    setShowAddForm(false);
+    setEditingId(null);
+    setTitle('');
+    setDescription('');
+    setDateSolar('');
+    setDateLunar('');
+    setLocation('');
+    setHost('');
+  };
+
+  const handleEdit = (event: ClanEvent) => {
+    setTitle(event.title);
+    setDescription(event.description || '');
+    setCategory(event.category);
+    setDateSolar(event.dateSolar);
+    setDateLunar(event.dateLunar || '');
+    setLocation(event.location || '');
+    setHost(event.host || '');
+    setEditingId(event.id);
+    setShowAddForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa sự kiện này? Hành động này không thể hoàn tác.') && onDeleteEvent) {
+      onDeleteEvent(id);
     }
   };
 
@@ -85,7 +121,15 @@ export default function EventsManager({
 
         {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
           <button type="button"
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => {
+              if (showAddForm) {
+                setShowAddForm(false);
+                setEditingId(null);
+                setTitle('');
+              } else {
+                setShowAddForm(true);
+              }
+            }}
             className="px-3.5 py-2 text-xs font-bold rounded-xl bg-amber-700 hover:bg-amber-800 text-white flex items-center gap-1 shadow hover:scale-95 transition-all"
           >
             <PlusCircle className="h-4 w-4" /> {showAddForm ? 'Hủy bỏ' : 'Đăng sự kiện mới'}
@@ -97,7 +141,7 @@ export default function EventsManager({
       {showAddForm && (
         <form onSubmit={handleSubmit} className="p-5 bg-amber-50/10 dark:bg-zinc-950/60 border border-amber-100 dark:border-zinc-800 rounded-3xl space-y-4 max-w-2xl animate-fade-in">
           <span className="text-xs font-bold text-amber-800 dark:text-amber-400 block border-b pb-1">
-            MỞ SỔ ĐĂNG KÝ SỰ KIỆN GIA TỘC
+            {editingId ? 'SỬA ĐỔI THÔNG TIN SỰ KIỆN' : 'MỞ SỔ ĐĂNG KÝ SỰ KIỆN GIA TỘC'}
           </span>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -189,7 +233,7 @@ export default function EventsManager({
             type="submit"
             className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs font-bold shadow"
           >
-            Lập bảng sự kiện dòng tộc
+            {editingId ? 'Cập nhật sự kiện' : 'Lập bảng sự kiện dòng tộc'}
           </button>
         </form>
       )}
@@ -207,9 +251,17 @@ export default function EventsManager({
               <div className="space-y-3">
                 {/* Header categories */}
                 <div className="flex items-center justify-between">
-                  <span className={`px-2.5 py-0.5 text-[9px] uppercase font-bold tracking-wider rounded-full border ${getCategoryTheme(event.category)}`}>
-                    {event.category}
-                  </span>
+                  <div className="flex gap-2">
+                    <span className={`px-2.5 py-0.5 text-[9px] uppercase font-bold tracking-wider rounded-full border ${getCategoryTheme(event.category)}`}>
+                      {event.category}
+                    </span>
+                    {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
+                      <div className="flex gap-1">
+                        <button onClick={() => handleEdit(event)} className="text-[9px] px-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">Sửa</button>
+                        <button onClick={() => handleDelete(event.id)} className="text-[9px] px-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200">Xóa</button>
+                      </div>
+                    )}
+                  </div>
                   <span className="text-[10px] font-mono text-gray-400 block">
                     ID: {event.id}
                   </span>

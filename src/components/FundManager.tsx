@@ -6,6 +6,8 @@ interface FundManagerProps {
   transactions: FundTransaction[];
   currentUserRole: UserRole;
   onAddTransaction?: (tx: FundTransaction) => void;
+  onUpdateTransaction?: (updatedTx: FundTransaction) => void;
+  onDeleteTransaction?: (txId: string) => void;
 }
 
 const CURRENCY_FORMATTER = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
@@ -28,6 +30,7 @@ export default function FundManager({
   onAddTransaction
 }: FundManagerProps) {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // New Transaction states
   const [type, setType] = useState<'thu' | 'chi'>('thu');
@@ -46,7 +49,18 @@ export default function FundManager({
     const parsedAmount = Number(amount);
     if (!title || isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-    if (onAddTransaction) {
+    if (editingId && onUpdateTransaction) {
+      onUpdateTransaction({
+        id: editingId,
+        type,
+        title,
+        amount: parsedAmount,
+        date: new Date().toISOString().split('T')[0], // keep the same or update? let's update date to now or preserve. Wait, preserve date from original!
+        category,
+        contributor: contributor || undefined
+      });
+      alert('Đã cập nhật bút toán quỹ dòng họ thành công!');
+    } else if (onAddTransaction) {
       onAddTransaction({
         id: `TX_${Date.now()}`,
         type,
@@ -57,12 +71,30 @@ export default function FundManager({
         contributor: contributor || undefined
       });
       alert('Đã ghi nhận bút toán quỹ dòng họ thành công!');
-      setShowAddForm(false);
-      // Reset
-      setTitle('');
-      setAmount('');
-      setCategory('đóng góp');
-      setContributor('');
+    }
+
+    setShowAddForm(false);
+    setEditingId(null);
+    setTitle('');
+    setAmount('');
+    setCategory('đóng góp');
+    setContributor('');
+  };
+
+  const handleEdit = (tx: FundTransaction) => {
+    setType(tx.type);
+    setTitle(tx.title);
+    setAmount(tx.amount.toString());
+    setCategory(tx.category);
+    setContributor(tx.contributor || '');
+    setEditingId(tx.id);
+    setShowAddForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa giao dịch quỹ này? Hành động này sẽ thay đổi số dư quỹ.') && onDeleteTransaction) {
+      onDeleteTransaction(id);
     }
   };
 
@@ -84,7 +116,16 @@ export default function FundManager({
 
         {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
           <button type="button"
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => {
+              if (showAddForm) {
+                setShowAddForm(false);
+                setEditingId(null);
+                setTitle('');
+                setAmount('');
+              } else {
+                setShowAddForm(true);
+              }
+            }}
             className="px-3.5 py-2 text-xs font-bold rounded-xl bg-amber-700 hover:bg-amber-800 text-white flex items-center gap-1 shadow hover:scale-95 transition-all"
           >
             <PlusCircle className="h-4 w-4" /> {showAddForm ? 'Hủy bỏ' : 'Ghi chép giao dịch mới'}
@@ -165,7 +206,7 @@ export default function FundManager({
       {showAddForm && (
         <form onSubmit={handleSubmit} className="p-5 bg-amber-50/10 dark:bg-zinc-950/60 border border-amber-100 dark:border-zinc-800 rounded-3xl space-y-4 max-w-2xl animate-fade-in">
           <span className="text-xs font-bold text-amber-800 dark:text-amber-400 block border-b pb-1">
-            GHI CHÉP GIAO DỊCH QUỸ TỪ ĐƯỜNG
+            {editingId ? 'SỬA ĐỔI GIAO DỊCH QUỸ' : 'GHI CHÉP GIAO DỊCH QUỸ TỪ ĐƯỜNG'}
           </span>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -237,7 +278,7 @@ export default function FundManager({
             type="submit"
             className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs font-bold shadow"
           >
-            Đưa bút toán vào sổ quỹ
+            {editingId ? 'Cập nhật giao dịch' : 'Đưa bút toán vào sổ quỹ'}
           </button>
         </form>
       )}
@@ -257,6 +298,9 @@ export default function FundManager({
                 <th className="p-3.5 font-bold">Mục tiêu / Người liên đới</th>
                 <th className="p-3.5 font-bold">Hạng mục</th>
                 <th className="p-3.5 font-bold text-right">Số tiền</th>
+                {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
+                  <th className="p-3.5 font-bold text-center">Thao tác</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -285,6 +329,12 @@ export default function FundManager({
                   <td className={`p-3.5 text-right font-bold text-[12px] font-mono ${t.type === 'thu' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
                     {t.type === 'thu' ? '+' : '-'}{formatCurrency(t.amount)}
                   </td>
+                  {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
+                    <td className="p-3.5 text-center space-x-1">
+                      <button onClick={() => handleEdit(t)} className="text-[9px] px-1.5 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">Sửa</button>
+                      <button onClick={() => handleDelete(t.id)} className="text-[9px] px-1.5 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">Xóa</button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

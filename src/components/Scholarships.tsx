@@ -6,6 +6,8 @@ interface ScholarshipsProps {
   scholarships: ScholarshipRecord[];
   currentUserRole: UserRole;
   onAddScholarship?: (record: ScholarshipRecord) => void;
+  onUpdateScholarship?: (updatedRecord: ScholarshipRecord) => void;
+  onDeleteScholarship?: (id: string) => void;
 }
 
 const CURRENCY_FORMATTER = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
@@ -17,6 +19,7 @@ export default function Scholarships({
   onAddScholarship
 }: ScholarshipsProps) {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [studentName, setStudentName] = useState('');
   const [achievementTitle, setAchievementTitle] = useState('');
   const [awardName, setAwardName] = useState('');
@@ -27,7 +30,17 @@ export default function Scholarships({
     e.preventDefault();
     if (!studentName || !achievementTitle) return;
 
-    if (onAddScholarship) {
+    if (editingId && onUpdateScholarship) {
+      onUpdateScholarship({
+        id: editingId,
+        studentName,
+        achievementTitle,
+        awardName: awardName || 'Học bổng Khuyến học Nguyễn Văn',
+        year: Number(year),
+        amount: amount ? Number(amount) : undefined
+      });
+      alert('Đã cập nhật hồ sơ vinh danh thành công!');
+    } else if (onAddScholarship) {
       onAddScholarship({
         id: `SCH_${Date.now()}`,
         studentName,
@@ -37,12 +50,30 @@ export default function Scholarships({
         amount: amount ? Number(amount) : undefined
       });
       alert('Đã vinh danh thành tích học sinh giỏi thành công!');
-      setShowAddForm(false);
-      // Reset
-      setStudentName('');
-      setAchievementTitle('');
-      setAwardName('');
-      setAmount('');
+    }
+
+    setShowAddForm(false);
+    setEditingId(null);
+    setStudentName('');
+    setAchievementTitle('');
+    setAwardName('');
+    setAmount('');
+  };
+
+  const handleEdit = (record: ScholarshipRecord) => {
+    setStudentName(record.studentName);
+    setAchievementTitle(record.achievementTitle);
+    setAwardName(record.awardName);
+    setYear(record.year.toString());
+    setAmount(record.amount ? record.amount.toString() : '');
+    setEditingId(record.id);
+    setShowAddForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa hồ sơ vinh danh này không?') && onDeleteScholarship) {
+      onDeleteScholarship(id);
     }
   };
 
@@ -64,7 +95,15 @@ export default function Scholarships({
 
         {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
           <button type="button"
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => {
+              if (showAddForm) {
+                setShowAddForm(false);
+                setEditingId(null);
+                setStudentName('');
+              } else {
+                setShowAddForm(true);
+              }
+            }}
             className="px-3.5 py-2 text-xs font-bold rounded-xl bg-amber-700 hover:bg-amber-800 text-white flex items-center gap-1 shadow hover:scale-95 transition-all"
           >
             <PlusCircle className="h-4 w-4" /> {showAddForm ? 'Hủy bỏ' : 'Vinh danh học sinh mới'}
@@ -103,7 +142,7 @@ export default function Scholarships({
       {showAddForm && (
         <form onSubmit={handleSubmit} className="p-5 bg-amber-50/10 dark:bg-zinc-950/60 border border-amber-100 dark:border-zinc-800 rounded-3xl space-y-4 max-w-2xl animate-fade-in">
           <span className="text-xs font-bold text-amber-800 dark:text-amber-400 block border-b pb-1">
-            GHI DANH VINH DANH HỌC SINH GIỎI
+            {editingId ? 'SỬA ĐỔI HỒ SƠ VINH DANH' : 'GHI DANH VINH DANH HỌC SINH GIỎI'}
           </span>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -169,7 +208,7 @@ export default function Scholarships({
             type="submit"
             className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs font-bold shadow"
           >
-            Lập bảng vinh danh
+            {editingId ? 'Cập nhật hồ sơ' : 'Lập bảng vinh danh'}
           </button>
         </form>
       )}
@@ -186,10 +225,17 @@ export default function Scholarships({
               <Award className="h-5 w-5 group-hover:rotate-12 transition-transform" />
             </div>
 
-            <div className="space-y-2.5">
-              <span className="text-[9.5px] font-mono text-gray-400 uppercase tracking-widest block">NĂM HỌC {record.year}</span>
+              <div className="flex justify-between items-start">
+                <span className="text-[9.5px] font-mono text-gray-400 uppercase tracking-widest block">NĂM HỌC {record.year}</span>
+                {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
+                  <div className="flex gap-1 z-10 relative">
+                    <button onClick={() => handleEdit(record)} className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">Sửa</button>
+                    <button onClick={() => handleDelete(record.id)} className="text-[9px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded hover:bg-red-200">Xóa</button>
+                  </div>
+                )}
+              </div>
               
-              <h3 className="text-sm font-extrabold font-sans text-gray-900 dark:text-zinc-100 flex items-center gap-1.5">
+              <h3 className="text-sm font-extrabold font-sans text-gray-900 dark:text-zinc-100 flex items-center gap-1.5 mt-1">
                 👨‍🎓 {record.studentName}
               </h3>
 

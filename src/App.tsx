@@ -306,6 +306,54 @@ export default function App() {
     });
   };
 
+  const handleUpdateEvent = (updatedEvent: ClanEvent) => {
+    const updatedEvents = events.map(e => e.id === updatedEvent.id ? updatedEvent : e);
+    setEvents(updatedEvents);
+    const updatedLogs = handleAddLog('Cập nhật sự kiện', updatedEvent.title, true);
+    pushStateUpdate({ members, branches, events: updatedEvents, fundTransactions, scholarships, documents, suggestions, logs: updatedLogs });
+  };
+
+  const handleDeleteEvent = (id: string) => {
+    const event = events.find(e => e.id === id);
+    if (!event) return;
+    const updatedEvents = events.filter(e => e.id !== id);
+    setEvents(updatedEvents);
+    const updatedLogs = handleAddLog('Xóa sự kiện', event.title, true);
+    pushStateUpdate({ members, branches, events: updatedEvents, fundTransactions, scholarships, documents, suggestions, logs: updatedLogs });
+  };
+
+  const handleUpdateTransaction = (updatedTx: FundTransaction) => {
+    const updatedTxs = fundTransactions.map(t => t.id === updatedTx.id ? updatedTx : t);
+    setFundTransactions(updatedTxs);
+    const updatedLogs = handleAddLog('Cập nhật giao dịch quỹ', updatedTx.description, true);
+    pushStateUpdate({ members, branches, events, fundTransactions: updatedTxs, scholarships, documents, suggestions, logs: updatedLogs });
+  };
+
+  const handleDeleteTransaction = (id: string) => {
+    const tx = fundTransactions.find(t => t.id === id);
+    if (!tx) return;
+    const updatedTxs = fundTransactions.filter(t => t.id !== id);
+    setFundTransactions(updatedTxs);
+    const updatedLogs = handleAddLog('Xóa giao dịch quỹ', tx.description, true);
+    pushStateUpdate({ members, branches, events, fundTransactions: updatedTxs, scholarships, documents, suggestions, logs: updatedLogs });
+  };
+
+  const handleUpdateScholarship = (updatedScholarship: ScholarshipRecord) => {
+    const updatedScholarships = scholarships.map(s => s.id === updatedScholarship.id ? updatedScholarship : s);
+    setScholarships(updatedScholarships);
+    const updatedLogs = handleAddLog('Cập nhật hồ sơ khuyến học', updatedScholarship.studentName, true);
+    pushStateUpdate({ members, branches, events, fundTransactions, scholarships: updatedScholarships, documents, suggestions, logs: updatedLogs });
+  };
+
+  const handleDeleteScholarship = (id: string) => {
+    const s = scholarships.find(s => s.id === id);
+    if (!s) return;
+    const updatedScholarships = scholarships.filter(s => s.id !== id);
+    setScholarships(updatedScholarships);
+    const updatedLogs = handleAddLog('Xóa hồ sơ khuyến học', s.studentName, true);
+    pushStateUpdate({ members, branches, events, fundTransactions, scholarships: updatedScholarships, documents, suggestions, logs: updatedLogs });
+  };
+
   // Import excel sheets simulate
   const handleImportExcelData = (rawText: string) => {
     const rows = rawText.trim().split('\n');
@@ -547,6 +595,8 @@ export default function App() {
             currentUserEmail={currentUserEmail}
             currentUserRole={currentUserRole}
             onAddEvent={handleAddEvent}
+            onUpdateEvent={handleUpdateEvent}
+            onDeleteEvent={handleDeleteEvent}
           />
         );
       case 'funds':
@@ -555,6 +605,8 @@ export default function App() {
             transactions={fundTransactions} 
             currentUserRole={currentUserRole}
             onAddTransaction={handleAddTransaction}
+            onUpdateTransaction={handleUpdateTransaction}
+            onDeleteTransaction={handleDeleteTransaction}
           />
         );
       case 'scholarships':
@@ -563,6 +615,8 @@ export default function App() {
             scholarships={scholarships} 
             currentUserRole={currentUserRole}
             onAddScholarship={handleAddScholarship}
+            onUpdateScholarship={handleUpdateScholarship}
+            onDeleteScholarship={handleDeleteScholarship}
           />
         );
       case 'library':
