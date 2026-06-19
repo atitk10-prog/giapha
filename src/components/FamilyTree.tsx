@@ -28,6 +28,22 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
   // Collapse states
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
 
+  const resetPan = () => {
+    if (containerRef.current) {
+      const { width } = containerRef.current.getBoundingClientRect();
+      setTransform({ x: width / 2 - 800 * 0.75, y: 60, scale: 0.75 });
+    } else {
+      setTransform({ x: 150, y: 30, scale: 0.75 });
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      resetPan();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   const toggleCollapse = (id: string) => {
     setCollapsedNodes(prev => {
       const next = new Set(prev);
@@ -485,7 +501,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
               if (filterGeneration !== 'ALL' && String(primary.generation) !== filterGeneration) unitDimmed = true;
 
               return (
-                <g key={primary.id} transform={`translate(${pos.x}, ${pos.y})`} style={{ opacity: unitDimmed ? 0.2 : 1 }}>
+                <g key={primary.id} transform={`translate(${pos.x}, ${pos.y})`} className="group" style={{ opacity: unitDimmed ? 0.2 : 1 }}>
                   {/* Subtle Background for Couple */}
                   {spouses.length > 0 && (
                     <rect 
@@ -578,7 +594,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
                     )}
                     
                     {onAddMember && (
-                      <g className="opacity-0 hover:opacity-100 transition-opacity">
+                      <g className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
                         <rect x="-80" y="-12" width="160" height="30" fill="transparent" />
                         <g 
                           transform={`translate(${layoutData.nodeDescendants[primary.id] > 0 ? -28 : 0}, 0)`}
