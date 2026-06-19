@@ -1,4 +1,4 @@
-import { Gender, ClanMember, ClanBranch, ClanEvent, FundTransaction, ScholarshipRecord, ClanDocument, PhotoAlbum } from './types';
+import { Gender, ClanMember, ClanBranch, ClanEvent, FundTransaction, ScholarshipRecord, ClanDocument, PhotoAlbum } from './types.js';
 
 export const initialBranches: ClanBranch[] = [
   {
