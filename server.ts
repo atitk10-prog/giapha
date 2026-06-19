@@ -35,7 +35,10 @@ if (!fs.existsSync(DATA_DIR)) {
 
 // Google Sheets configuration
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+let GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+if (GOOGLE_PRIVATE_KEY && GOOGLE_PRIVATE_KEY.startsWith('"') && GOOGLE_PRIVATE_KEY.endsWith('"')) {
+  GOOGLE_PRIVATE_KEY = GOOGLE_PRIVATE_KEY.slice(1, -1);
+}
 const GOOGLE_SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID;
 
 let sheets: any = null;
@@ -176,7 +179,13 @@ async function loadDatabaseState() {
     ] as any[]
   };
   
-  fs.writeFileSync(DATA_FILE, JSON.stringify(defaultState, null, 2), "utf-8");
+  if (!process.env.VERCEL) {
+    try {
+      fs.writeFileSync(DATA_FILE, JSON.stringify(defaultState, null, 2), "utf-8");
+    } catch (e) {
+      console.warn("Could not write default state file.", e);
+    }
+  }
   return defaultState;
 }
 
