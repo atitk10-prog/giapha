@@ -262,17 +262,17 @@ export default function AdminPanel({
                 </div>
 
                 <div>
-                  <label className="block text-gray-500 font-bold mb-1">Thế hệ đời thứ mấy (1 - 5)</label>
+                  <label className="block text-gray-500 font-bold mb-1">Thế hệ đời thứ mấy</label>
                   <select
                     value={newMemberGen}
                     onChange={e => setNewMemberGen(e.target.value)}
                     className="w-full p-2.5 border rounded-lg bg-white dark:bg-zinc-900 dark:border-zinc-800"
                   >
-                    <option value="1">Đời thứ 1 (Khởi tổ)</option>
-                    <option value="2">Đời thứ 2</option>
-                    <option value="3">Đời thứ 3</option>
-                    <option value="4">Đời thứ 4</option>
-                    <option value="5">Đời thứ 5</option>
+                    {Array.from({ length: Math.max(5, (members.length > 0 ? Math.max(...members.map(m => m.generation)) : 1) + 2) }, (_, i) => i + 1).map(gen => (
+                      <option key={gen} value={gen}>
+                        Đời thứ {gen} {gen === 1 ? '(Khởi tổ)' : ''}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
