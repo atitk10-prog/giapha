@@ -11,3 +11,9 @@ export default function(req: any, res: any) {
   }
   res.status(500).json({ error: "Express app not found or not a function", serverAppType: typeof serverApp });
 }
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
