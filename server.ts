@@ -128,13 +128,22 @@ async function loadDatabaseState() {
       });
       
       const valueRanges = response.data.valueRanges;
-      if (valueRanges && valueRanges[0].values && valueRanges[0].values.length > 0) {
+      if (valueRanges) {
+        // Chỉ cần lấy được dữ liệu từ Google Sheets (dù rỗng), ta coi đó là nguồn chính thống
         const state: any = {};
+        let isCompletelyEmpty = true;
+        
         for (let i = 0; i < ranges.length; i++) {
            const rangeName = ranges[i];
            const stateKey = rangeName.charAt(0).toLowerCase() + rangeName.slice(1);
-           state[stateKey] = parseFromSheet(valueRanges[i].values || []);
+           const values = valueRanges[i].values || [];
+           if (values.length > 0) isCompletelyEmpty = false;
+           state[stateKey] = parseFromSheet(values);
         }
+        
+        // Nếu tất cả các sheet đều rỗng hoàn toàn (chưa từng khởi tạo), ta có thể chọn khởi tạo mặc định.
+        // Tuy nhiên, người dùng đang phàn nàn là "xóa hết thì bị quay lại ban đầu". 
+        // Do đó, ta luôn trả về state hiện tại, vì lúc xóa xong nó đã lưu [[]] lên sheet.
         return state;
       }
     } catch (e: any) {
