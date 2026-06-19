@@ -338,6 +338,11 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
   const getRoleLabel = (member: ClanMember, isPrimary: boolean) => {
      if (isPrimary) {
         if (member.generation === 1) return member.gender === Gender.MALE ? 'Cụ Khởi Tổ' : 'Cụ Bà';
+        if (member.birthOrder) {
+           if (member.birthOrder === 1) return member.gender === Gender.MALE ? 'Trưởng nam' : 'Trưởng nữ';
+           if (member.birthOrder === 10) return member.gender === Gender.MALE ? 'Nam út' : 'Nữ út';
+           return member.gender === Gender.MALE ? `Thứ nam ${member.birthOrder}` : `Thứ nữ ${member.birthOrder}`;
+        }
         return member.gender === Gender.MALE ? 'Con trai' : 'Con gái';
      } else {
         if (member.generation === 1) return member.gender === Gender.MALE ? 'Cụ Ông' : 'Cụ Bà';
@@ -562,7 +567,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
 
                         {/* Role Badge */}
                         <g transform={`translate(0, -50)`}>
-                          <rect x="-35" y="0" width="70" height="20" rx="10" className={isBloodline ? "fill-amber-500" : (member.gender === Gender.MALE ? "fill-indigo-500" : "fill-pink-500")} />
+                          <rect x="-40" y="0" width="80" height="20" rx="10" className={isBloodline ? "fill-amber-500" : (member.gender === Gender.MALE ? "fill-indigo-500" : "fill-pink-500")} />
                           <text x="0" y="14" textAnchor="middle" className="font-sans text-[10px] font-bold fill-white tracking-wider">{roleLabel}</text>
                         </g>
 
