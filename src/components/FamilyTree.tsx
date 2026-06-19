@@ -194,12 +194,13 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
       });
 
       // Count descendants
-      const countDescendants = (n: any): number => {
-         let count = n.children ? n.children.length : (n._children ? n._children.length : 0);
-         if (n.children) {
-            n.children.forEach((c: any) => count += countDescendants(c));
-         } else if (n._children) {
-            n._children.forEach((c: any) => count += countDescendants(c));
+      // Count descendants based on the original data since D3 nodes hide _children
+      const countDescendantsData = (dataNode: any): number => {
+         let count = dataNode.children ? dataNode.children.length : (dataNode._children ? dataNode._children.length : 0);
+         if (dataNode.children) {
+            dataNode.children.forEach((c: any) => count += countDescendantsData(c));
+         } else if (dataNode._children) {
+            dataNode._children.forEach((c: any) => count += countDescendantsData(c));
          }
          return count;
       };
@@ -212,7 +213,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
         
         positions[node.data.id] = { x: px, y: py, data: node.data };
         hierarchyNodes[node.data.id] = node;
-        nodeDescendants[node.data.id] = countDescendants(node);
+        nodeDescendants[node.data.id] = countDescendantsData(node.data);
       });
     } catch (e) {
       console.error("D3 Tree layout error:", e);
