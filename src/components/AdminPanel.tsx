@@ -32,14 +32,22 @@ export default function AdminPanel({
   // Excel paste state
   const [excelPaste, setExcelPaste] = useState('');
 
-  // Sơ khai CRUD member inputs
+  const [newMemberAvatarUrl, setNewMemberAvatarUrl] = useState('');
   const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberNickname, setNewMemberNickname] = useState('');
   const [newMemberGender, setNewMemberGender] = useState<Gender>(Gender.MALE);
-  const [newMemberGen, setNewMemberGen] = useState('4');
+  const [newMemberGen, setNewMemberGen] = useState('1');
+  const [newMemberFatherId, setNewMemberFatherId] = useState('');
+  const [newMemberMotherId, setNewMemberMotherId] = useState('');
+  const [newMemberSpouseId, setNewMemberSpouseId] = useState('');
+  const [newMemberBirthOrder, setNewMemberBirthOrder] = useState('');
+  const [newMemberIsDeceased, setNewMemberIsDeceased] = useState(false);
   const [newMemberBranch, setNewMemberBranch] = useState('CHI_TRUONG');
   const [newMemberDob, setNewMemberDob] = useState('');
-  const [newMemberFatherId, setNewMemberFatherId] = useState('');
-  const [newMemberAvatarUrl, setNewMemberAvatarUrl] = useState('');
+  const [newMemberDod, setNewMemberDod] = useState('');
+  const [newMemberProfession, setNewMemberProfession] = useState('');
+  const [newMemberLocationName, setNewMemberLocationName] = useState('');
+  const [newMemberPhone, setNewMemberPhone] = useState('');
 
   const reversedLogs = useMemo(() => [...logs].reverse(), [logs]);
 
@@ -51,20 +59,35 @@ export default function AdminPanel({
     onAddMember({
       id,
       fullName: newMemberName,
+      nickname: newMemberNickname || undefined,
       gender: newMemberGender,
       generation: Number(newMemberGen),
       branchId: newMemberBranch,
       dob: newMemberDob || undefined,
-      isDeceased: false,
+      dod: newMemberDod || undefined,
+      isDeceased: newMemberIsDeceased,
       fatherId: newMemberFatherId || null,
-      locationName: 'Quảng Nam',
+      motherId: newMemberMotherId || null,
+      spouseId: newMemberSpouseId || null,
+      birthOrder: newMemberBirthOrder || undefined,
+      profession: newMemberProfession || undefined,
+      locationName: newMemberLocationName || 'Quảng Nam',
+      phone: newMemberPhone || undefined,
       avatarUrl: newMemberAvatarUrl || undefined
     });
 
     alert(`Đã thêm thành công thành viên mới ${newMemberName} mang mã bạ ${id}!`);
     setNewMemberName('');
+    setNewMemberNickname('');
     setNewMemberDob('');
+    setNewMemberDod('');
     setNewMemberFatherId('');
+    setNewMemberMotherId('');
+    setNewMemberSpouseId('');
+    setNewMemberBirthOrder('');
+    setNewMemberProfession('');
+    setNewMemberLocationName('');
+    setNewMemberPhone('');
     setNewMemberAvatarUrl('');
   };
 
@@ -228,13 +251,24 @@ export default function AdminPanel({
                 </div>
 
                 <div>
-                  <label className="block text-gray-500 font-bold mb-1">Họ và Tên thành viên mới</label>
+                  <label className="block text-gray-500 font-bold mb-1">Họ và Tên khai sinh</label>
                   <input
                     type="text"
                     required
                     placeholder="Nhập tên..."
                     value={newMemberName}
                     onChange={e => setNewMemberName(e.target.value)}
+                    className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none dark:text-zinc-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-500 font-bold mb-1">Tên tự / Thường gọi (Tuỳ chọn)</label>
+                  <input
+                    type="text"
+                    placeholder="Ví dụ: Tí, Cu, Bí..."
+                    value={newMemberNickname}
+                    onChange={e => setNewMemberNickname(e.target.value)}
                     className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none dark:text-zinc-100"
                   />
                 </div>
@@ -262,6 +296,17 @@ export default function AdminPanel({
                 </div>
 
                 <div>
+                  <label className="block text-gray-500 font-bold mb-1">Thứ tự sinh (Tuỳ chọn)</label>
+                  <input
+                    type="text"
+                    placeholder="Ví dụ: Con cả, Con thứ 2..."
+                    value={newMemberBirthOrder}
+                    onChange={e => setNewMemberBirthOrder(e.target.value)}
+                    className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none dark:text-zinc-100"
+                  />
+                </div>
+
+                <div>
                   <label className="block text-gray-500 font-bold mb-1">Thế hệ đời thứ mấy</label>
                   <select
                     value={newMemberGen}
@@ -277,24 +322,49 @@ export default function AdminPanel({
                 </div>
 
                 <div>
-                  <label className="block text-gray-500 font-bold mb-1">Mã bạ Cha trực hệ (Father ID)</label>
+                  <label className="block text-gray-500 font-bold mb-1">Mã bạ Cha trực hệ (Tuỳ chọn)</label>
                   <select
                     value={newMemberFatherId}
                     onChange={e => setNewMemberFatherId(e.target.value)}
                     className="w-full p-2.5 border rounded-lg bg-white dark:bg-zinc-900 dark:border-zinc-800"
                   >
-                    <option value="">Không có cha trong bạ hoặc là cụ khởi tổ</option>
-                    {members.reduce((acc: React.ReactElement[], m) => {
-                      if (m.gender === Gender.MALE) {
-                        acc.push(<option key={m.id} value={m.id}>{m.fullName} (Đời {m.generation} - {m.id})</option>);
-                      }
-                      return acc;
-                    }, [])}
+                    <option value="">-- Không xác định --</option>
+                    {members.filter(m => m.gender === Gender.MALE).map(m => (
+                      <option key={m.id} value={m.id}>{m.fullName} (Đời {m.generation})</option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-gray-500 font-bold mb-1">Phân cư chi họ</label>
+                  <label className="block text-gray-500 font-bold mb-1">Mã bạ Mẹ trực hệ (Tuỳ chọn)</label>
+                  <select
+                    value={newMemberMotherId}
+                    onChange={e => setNewMemberMotherId(e.target.value)}
+                    className="w-full p-2.5 border rounded-lg bg-white dark:bg-zinc-900 dark:border-zinc-800"
+                  >
+                    <option value="">-- Không xác định --</option>
+                    {members.filter(m => m.gender === Gender.FEMALE).map(m => (
+                      <option key={m.id} value={m.id}>{m.fullName} (Đời {m.generation})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-500 font-bold mb-1">Mã bạ Vợ/Chồng (Nếu có)</label>
+                  <select
+                    value={newMemberSpouseId}
+                    onChange={e => setNewMemberSpouseId(e.target.value)}
+                    className="w-full p-2.5 border rounded-lg bg-white dark:bg-zinc-900 dark:border-zinc-800"
+                  >
+                    <option value="">-- Không xác định --</option>
+                    {members.map(m => (
+                      <option key={m.id} value={m.id}>{m.fullName} (Đời {m.generation})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-500 font-bold mb-1">Thuộc Nhánh / Chi họ</label>
                   <select
                     value={newMemberBranch}
                     onChange={e => setNewMemberBranch(e.target.value)}
@@ -303,6 +373,23 @@ export default function AdminPanel({
                     <option value="CHI_TRUONG">Chi Trưởng (Quảng Nam)</option>
                     <option value="CHI_THU_01">Chi Thứ Một (Đà Nẵng)</option>
                   </select>
+                  <p className="text-[10px] text-gray-400 mt-1 italic">
+                    Xác định dòng nhánh để dễ dàng vẽ sơ đồ phả hệ cục bộ.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-gray-500 font-bold mb-1">Tình trạng</label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <input
+                      type="checkbox"
+                      id="isDeceased"
+                      checked={newMemberIsDeceased}
+                      onChange={e => setNewMemberIsDeceased(e.target.checked)}
+                      className="w-4 h-4 text-amber-600 rounded border-gray-300 focus:ring-amber-500"
+                    />
+                    <label htmlFor="isDeceased" className="font-bold cursor-pointer">Đã mất</label>
+                  </div>
                 </div>
 
                 <div>
@@ -312,6 +399,52 @@ export default function AdminPanel({
                     placeholder="Ví dụ: 1980"
                     value={newMemberDob}
                     onChange={e => setNewMemberDob(e.target.value)}
+                    className="w-full p-2.5 border rounded-lg bg-white dark:bg-zinc-900 dark:border-zinc-800"
+                  />
+                </div>
+
+                {newMemberIsDeceased && (
+                  <div>
+                    <label className="block text-gray-500 font-bold mb-1">Năm mất (Tuỳ chọn)</label>
+                    <input
+                      type="text"
+                      placeholder="Ví dụ: 2020"
+                      value={newMemberDod}
+                      onChange={e => setNewMemberDod(e.target.value)}
+                      className="w-full p-2.5 border rounded-lg bg-white dark:bg-zinc-900 dark:border-zinc-800"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-gray-500 font-bold mb-1">Nghề nghiệp (Tuỳ chọn)</label>
+                  <input
+                    type="text"
+                    placeholder="Kỹ sư, Giáo viên..."
+                    value={newMemberProfession}
+                    onChange={e => setNewMemberProfession(e.target.value)}
+                    className="w-full p-2.5 border rounded-lg bg-white dark:bg-zinc-900 dark:border-zinc-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-500 font-bold mb-1">Nơi cư trú (Tuỳ chọn)</label>
+                  <input
+                    type="text"
+                    placeholder="Đà Nẵng, Hà Nội..."
+                    value={newMemberLocationName}
+                    onChange={e => setNewMemberLocationName(e.target.value)}
+                    className="w-full p-2.5 border rounded-lg bg-white dark:bg-zinc-900 dark:border-zinc-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-500 font-bold mb-1">Số điện thoại (Tuỳ chọn)</label>
+                  <input
+                    type="text"
+                    placeholder="0987..."
+                    value={newMemberPhone}
+                    onChange={e => setNewMemberPhone(e.target.value)}
                     className="w-full p-2.5 border rounded-lg bg-white dark:bg-zinc-900 dark:border-zinc-800"
                   />
                 </div>
