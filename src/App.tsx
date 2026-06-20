@@ -325,7 +325,7 @@ export default function App() {
   const handleUpdateTransaction = (updatedTx: FundTransaction) => {
     const updatedTxs = fundTransactions.map(t => t.id === updatedTx.id ? updatedTx : t);
     setFundTransactions(updatedTxs);
-    const updatedLogs = handleAddLog('Cập nhật giao dịch quỹ', updatedTx.description, true);
+    const updatedLogs = handleAddLog('Cập nhật giao dịch quỹ', updatedTx.title, true);
     pushStateUpdate({ members, branches, events, fundTransactions: updatedTxs, scholarships, documents, suggestions, logs: updatedLogs });
   };
 
@@ -752,7 +752,7 @@ export default function App() {
             </div>
             <div>
               <span className="text-[9.5px] uppercase tracking-widest text-amber-700 dark:text-amber-400 font-bold font-mono">ĐẠI TỘC CHÍ VĂN HÓA</span>
-              <h1 className="text-sm font-black font-sans leading-none text-gray-900 dark:text-white">GIA PHẢ SỐ TỘC HỌ NGUYỄN</h1>
+              <h1 className="text-sm font-black font-sans leading-none text-gray-900 dark:text-white">GIA PHẢ SỐ TỘC HỌ NGUYỄN(Con cháu Cố Xiêm)</h1>
             </div>
           </div>
 
@@ -902,7 +902,7 @@ export default function App() {
               <span className="px-2.5 py-0.5 rounded bg-amber-700/80 text-[10px] uppercase font-mono tracking-widest text-amber-100 border border-amber-500/20">
                 Tổ đường chí trung hiếu
               </span>
-              <h2 className="text-xl sm:text-2xl font-black font-sans leading-none tracking-tight">GIA PHẢ TỘC HỌ NGUYỄN</h2>
+              <h2 className="text-xl sm:text-2xl font-black font-sans leading-none tracking-tight">GIA PHẢ TỘC HỌ NGUYỄN(Con cháu Cố Xiêm)</h2>
               <p className="text-xs text-amber-200 max-w-xl italic">
                 “Đoàn kết • Phụng gia hiếu học • Kiến tạo dòng tộc muôn đời thịnh vượng” - Tộc ước kiến lập gia phong vững bền dòng tộc gốc Nghệ An, nay tại Đồng Trường, Xã Trà My, TP. Đà Nẵng.
               </p>
