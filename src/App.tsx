@@ -711,26 +711,29 @@ export default function App() {
             if (addingRelation.parentId) {
               const parent = members.find(m => m.id === addingRelation.parentId);
               newMember.generation = parent ? parent.generation + 1 : 1;
+              handleAddMember(newMember);
             } else if (addingRelation.spouseId) {
               const spouse = members.find(m => m.id === addingRelation.spouseId);
               newMember.generation = spouse ? spouse.generation : 1;
-            }
-            
-            handleAddMember(newMember);
-            
-            // If adding spouse, we must also update the other member's spouseId link
-            if (addingRelation.spouseId) {
+              
+              // Build the updated members array combining BOTH changes (adding the spouse & linking the spouseId)
               const updatedMembers = members.map(m => {
                 if (m.id === addingRelation.spouseId) {
                   return { ...m, spouseId: newMember.id };
                 }
                 return m;
               });
+              updatedMembers.push(newMember); // Add the new member
+
               setMembers(updatedMembers);
+              const updatedLogs = handleAddLog(`Thêm mới thành viên phả bạ (Vợ/Chồng)`, newMember.fullName, true);
+
               pushStateUpdate({
                 members: updatedMembers,
-                branches, events, fundTransactions, scholarships, documents, suggestions, logs
+                branches, events, fundTransactions, scholarships, documents, suggestions, logs: updatedLogs
               });
+              
+              checkAiDuplicates(newMember);
             }
             
             setAddingRelation(null);
