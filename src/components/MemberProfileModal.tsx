@@ -78,6 +78,18 @@ export default function MemberProfileModal({
   // Sub-tab state
   const [relationSubTab, setRelationSubTab] = useState<'grandparents' | 'parents_uncles' | 'siblings' | 'children'>('parents_uncles');
 
+  // Descendants recursive search
+  const getDescendants = (parentId: string, currentLevel: number): (ClanMember & { _relationLevel: number })[] => {
+    const directChildren = allMembers.filter(m => m.fatherId === parentId || m.motherId === parentId);
+    let allDesc: (ClanMember & { _relationLevel: number })[] = [];
+    for (const child of directChildren) {
+      allDesc.push({ ...child, _relationLevel: currentLevel });
+      allDesc = allDesc.concat(getDescendants(child.id, currentLevel + 1));
+    }
+    return allDesc;
+  };
+  const descendants = getDescendants(member.id, 1);
+
   // New photo input mock
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
 
@@ -787,7 +799,7 @@ export default function MemberProfileModal({
                   <button type="button" onClick={() => setRelationSubTab('grandparents')} className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] font-bold transition-all ${relationSubTab === 'grandparents' ? 'bg-amber-700 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-400'}`}>👴 Thượng đại (Ông Bà)</button>
                   <button type="button" onClick={() => setRelationSubTab('parents_uncles')} className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] font-bold transition-all ${relationSubTab === 'parents_uncles' ? 'bg-amber-700 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-400'}`}>👨‍👩‍👦 Trưởng bối (Cha Mẹ, Cô dì...)</button>
                   <button type="button" onClick={() => setRelationSubTab('siblings')} className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] font-bold transition-all ${relationSubTab === 'siblings' ? 'bg-amber-700 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-400'}`}>🧑‍🤝‍🧑 Đồng vai (Anh chị em)</button>
-                  <button type="button" onClick={() => setRelationSubTab('children')} className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] font-bold transition-all ${relationSubTab === 'children' ? 'bg-amber-700 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-400'}`}>🌱 Hậu bối (Con cái)</button>
+                  <button type="button" onClick={() => setRelationSubTab('children')} className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] font-bold transition-all ${relationSubTab === 'children' ? 'bg-amber-700 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-400'}`}>🌱 Hậu bối (Con cháu)</button>
                 </div>
 
                 <div className="mt-4 min-h-[200px] bg-gray-50/50 dark:bg-zinc-950/50 rounded-2xl p-4 border border-gray-100 dark:border-zinc-850">
@@ -845,10 +857,23 @@ export default function MemberProfileModal({
                   {relationSubTab === 'children' && (
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {children.map(rel => renderRelativeCard(rel, rel.gender === Gender.MALE ? 'Con trai' : 'Con gái', 'bg-purple-600'))}
+                        {descendants.map(rel => {
+                          let relationLabel = '';
+                          if (rel._relationLevel === 1) relationLabel = rel.gender === Gender.MALE ? 'Con trai' : 'Con gái';
+                          else if (rel._relationLevel === 2) relationLabel = rel.gender === Gender.MALE ? 'Cháu trai' : 'Cháu gái';
+                          else if (rel._relationLevel === 3) relationLabel = rel.gender === Gender.MALE ? 'Chắt trai' : 'Chắt gái';
+                          else if (rel._relationLevel === 4) relationLabel = rel.gender === Gender.MALE ? 'Chút trai' : 'Chút gái';
+                          else relationLabel = 'Hậu duệ Đời ' + rel.generation;
+                          
+                          let badgeColor = 'bg-purple-600';
+                          if (rel._relationLevel === 2) badgeColor = 'bg-purple-500';
+                          if (rel._relationLevel >= 3) badgeColor = 'bg-purple-400';
+
+                          return renderRelativeCard(rel, relationLabel, badgeColor);
+                        })}
                       </div>
-                      {children.length === 0 && (
-                        <p className="text-xs text-gray-500 italic text-center py-6">Chưa ghi nhận hậu duệ (Con cái).</p>
+                      {descendants.length === 0 && (
+                        <p className="text-xs text-gray-500 italic text-center py-6">Chưa ghi nhận hậu duệ (Con cháu).</p>
                       )}
                     </div>
                   )}
