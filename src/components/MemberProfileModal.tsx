@@ -269,37 +269,37 @@ export default function MemberProfileModal({
       <div className="relative w-full max-w-4xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
         
         {/* Header Summary */}
-        <div className="p-6 bg-gradient-to-r from-amber-800 to-amber-900 text-white flex items-start justify-between">
-          <div className="flex gap-4 items-center">
+        <div className="p-4 sm:p-6 pr-12 sm:pr-16 bg-gradient-to-r from-amber-800 to-amber-900 text-white flex items-start justify-between relative">
+          <div className="flex gap-3 sm:gap-4 items-center">
             {member.avatarUrl ? (
               <img 
                 src={member.avatarUrl} 
                 alt={member.fullName} 
-                className="w-16 h-16 rounded-full object-cover border-2 border-amber-300"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-amber-300 flex-shrink-0"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-amber-700 flex items-center justify-center text-amber-200 text-2xl font-bold border-2 border-amber-300">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-amber-700 flex items-center justify-center text-amber-200 text-xl sm:text-2xl font-bold border-2 border-amber-300 flex-shrink-0">
                 {member.fullName.charAt(0)}
               </div>
             )}
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold font-sans">{member.fullName}</h2>
-                <span className="px-2 py-0.5 text-[10px] uppercase font-mono bg-amber-700 rounded text-amber-100">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-lg sm:text-xl font-bold font-sans truncate max-w-full">{member.fullName}</h2>
+                <span className="px-2 py-0.5 text-[10px] uppercase font-mono bg-amber-700 rounded text-amber-100 flex-shrink-0">
                   Mã: {member.id}
                 </span>
               </div>
-              <p className="text-xs text-amber-200 mt-1">
-                Thế hệ Đời thứ {member.generation} • {member.gender === Gender.MALE ? 'Nam giới' : 'Nữ giới'} • {member.isDeceased ? `Đã mất (Thọ ${Number(member.dod) - Number(member.dob || 0)} tuổi)` : 'Còn sống'}
+              <p className="text-[11px] sm:text-xs text-amber-200 mt-1 truncate">
+                Đời thứ {member.generation} • {member.gender === Gender.MALE ? 'Nam' : 'Nữ'} • {member.isDeceased ? `Đã mất (Thọ ${Number(member.dod) - Number(member.dob || 0)} tuổi)` : 'Còn sống'}
               </p>
-              <p className="text-xs text-amber-100 italic mt-0.5">
+              <p className="text-[10px] sm:text-xs text-amber-100 italic mt-0.5 truncate">
                 {member.nickname ? `Tên tự: ${member.nickname}` : ''}
               </p>
             </div>
           </div>
           <button type="button" 
             onClick={onClose} 
-            className="p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-amber-100 hover:text-white transition-colors"
+            className="absolute top-4 sm:top-6 right-4 p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-amber-100 hover:text-white transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
