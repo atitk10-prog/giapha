@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { ClanMember, Gender } from '../types';
 import { hierarchy, tree } from 'd3-hierarchy';
-import { Search, ZoomIn, ZoomOut, Move, UserPlus, ChevronDown, ChevronRight, PlusCircle, HeartPulse, Maximize, Minimize } from 'lucide-react';
+import { Search, ZoomIn, ZoomOut, Move, UserPlus, ChevronDown, ChevronRight, PlusCircle, HeartPulse, Maximize, Minimize, Smartphone } from 'lucide-react';
 
 interface FamilyTreeProps {
   members: ClanMember[];
@@ -24,6 +24,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
 
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isRotated, setIsRotated] = useState(false);
 
   // Collapse states
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
@@ -35,6 +36,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
     } else {
       setTransform({ x: 150, y: 30, scale: 0.75 });
     }
+    setIsRotated(false);
   };
 
   useEffect(() => {
@@ -277,7 +279,26 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const dist = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
-      dragStart.current = { ...dragStart.current, initialPinchDist: dist, initialScale: transform.scale };
+      
+      const cx = (touch1.clientX + touch2.clientX) / 2;
+      const cy = (touch1.clientY + touch2.clientY) / 2;
+      
+      let mx = cx, my = cy;
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        mx = cx - rect.left;
+        my = cy - rect.top;
+      }
+      
+      dragStart.current = { 
+        ...dragStart.current, 
+        initialPinchDist: dist, 
+        initialScale: transform.scale,
+        initialX: transform.x,
+        initialY: transform.y,
+        pinchX: mx,
+        pinchY: my
+      };
       return;
     }
 
@@ -296,7 +317,12 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
         const scaleChange = dist / dragStart.current.initialPinchDist;
         let newScale = dragStart.current.initialScale * scaleChange;
         newScale = Math.max(0.3, Math.min(newScale, 2.0));
-        setTransform(prev => ({ ...prev, scale: newScale }));
+        
+        const ratio = newScale / dragStart.current.initialScale;
+        const newX = dragStart.current.pinchX - (dragStart.current.pinchX - dragStart.current.initialX) * ratio;
+        const newY = dragStart.current.pinchY - (dragStart.current.pinchY - dragStart.current.initialY) * ratio;
+        
+        setTransform(prev => ({ x: newX, y: newY, scale: newScale }));
       }
       return;
     }
@@ -315,8 +341,27 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
   };
 
   // Zoom Controllers
-  const zoomIn = () => setTransform(prev => ({ ...prev, scale: Math.min(prev.scale + 0.1, 1.8) }));
-  const zoomOut = () => setTransform(prev => ({ ...prev, scale: Math.max(prev.scale - 0.1, 0.4) }));
+  const zoomToPoint = (scaleFactor: number) => {
+    setTransform(prev => {
+      const newScale = Math.max(0.3, Math.min(prev.scale * scaleFactor, 2.0));
+      if (newScale === prev.scale) return prev;
+      
+      let mx = 0, my = 0;
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        mx = rect.width / 2;
+        my = rect.height / 2;
+      }
+
+      const ratio = newScale / prev.scale;
+      const newX = mx - (mx - prev.x) * ratio;
+      const newY = my - (my - prev.y) * ratio;
+      return { x: newX, y: newY, scale: newScale };
+    });
+  };
+
+  const zoomIn = () => zoomToPoint(1.2);
+  const zoomOut = () => zoomToPoint(0.8);
 
   // Native wheel event listener to properly preventDefault (React's onWheel is passive)
   useEffect(() => {
@@ -325,11 +370,20 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 0.05 : -0.05;
-      setTransform(prev => ({
-        ...prev,
-        scale: Math.max(0.3, Math.min(prev.scale + zoomFactor, 2.0))
-      }));
+      const zoomFactor = e.deltaY < 0 ? 1.05 : 0.95;
+      setTransform(prev => {
+        const newScale = Math.max(0.3, Math.min(prev.scale * zoomFactor, 2.0));
+        if (newScale === prev.scale) return prev;
+        
+        const rect = container.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        
+        const ratio = newScale / prev.scale;
+        const newX = mx - (mx - prev.x) * ratio;
+        const newY = my - (my - prev.y) * ratio;
+        return { x: newX, y: newY, scale: newScale };
+      });
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
@@ -419,7 +473,10 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
           <button type="button" onClick={resetPan} className={`${isFullscreen ? 'px-1.5 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs'} rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-medium shadow transition-all whitespace-nowrap`}>
             Mặc định
           </button>
-          <button type="button" onClick={() => setIsFullscreen(!isFullscreen)} className={`${isFullscreen ? 'p-1' : 'p-1.5'} rounded-lg bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-amber-100 transition-all sm:ml-1`}>
+          <button type="button" onClick={() => setIsRotated(!isRotated)} className={`${isFullscreen ? 'p-1' : 'p-1.5'} rounded-lg ${isRotated ? 'bg-amber-100 text-amber-600' : 'bg-gray-100/80 dark:bg-zinc-800/80'} hover:bg-amber-200 transition-all sm:ml-1`} title="Xoay dọc/ngang">
+            <Smartphone className={`${isFullscreen ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${isRotated ? 'text-amber-600' : 'text-gray-700 dark:text-zinc-300'}`} />
+          </button>
+          <button type="button" onClick={() => setIsFullscreen(!isFullscreen)} className={`${isFullscreen ? 'p-1' : 'p-1.5'} rounded-lg bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-amber-100 transition-all sm:ml-0.5`} title="Phóng to toàn màn hình">
             {isFullscreen ? <Minimize className={`${isFullscreen ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-gray-700 dark:text-zinc-300`} /> : <Maximize className="h-4 w-4 text-gray-700 dark:text-zinc-300" />}
           </button>
         </div>
@@ -465,7 +522,11 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
         </div>
 
         <svg className="w-full h-full">
-          <g style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: '0 0', transition: isDragging ? 'none' : 'transform 0.15s ease-out' }}>
+          <g style={{ 
+            transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale}) ${isRotated ? 'rotate(90deg)' : 'rotate(0deg)'}`, 
+            transformOrigin: isRotated ? '400px 400px' : '0 0', 
+            transition: isDragging ? 'none' : 'transform 0.25s ease-out' 
+          }}>
             {/* Generation Background Tracks */}
           {generationsList.map((gen) => {
             const trackY = 120 + (gen - 1) * 260;
@@ -574,14 +635,19 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
 
                         <g transform="translate(-50, 0)">
                           <circle cx="0" cy="0" r="18" fill="#e2e8f0" className="dark:fill-zinc-800" />
-                          {member.avatarUrl ? (
+                        {member.avatarUrl ? (
+                          <g transform={isRotated ? "rotate(-90)" : ""}>
                             <image href={member.avatarUrl} x="-18" y="-18" width="36" height="36" clipPath={`url(#avatar-clip-${member.id})`} preserveAspectRatio="xMidYMid slice" />
-                          ) : (
+                          </g>
+                        ) : (
+                          <g transform={isRotated ? "rotate(-90)" : ""}>
                             <text x="0" y="5" textAnchor="middle" className="font-sans text-[16px] fill-gray-400 font-bold">{member.fullName.charAt(0)}</text>
-                          )}
-                          <defs><clipPath id={`avatar-clip-${member.id}`}><circle cx="0" cy="0" r="18" /></clipPath></defs>
-                        </g>
+                          </g>
+                        )}
+                        <defs><clipPath id={`avatar-clip-${member.id}`}><circle cx="0" cy="0" r="18" /></clipPath></defs>
+                      </g>
 
+                      <g transform={isRotated ? "rotate(-90, -20, -10) translate(0, -6)" : ""}>
                         <text x="-20" y="-10" className="font-sans text-xs font-bold fill-gray-900 dark:fill-zinc-100 select-none text-[11px]">
                           {member.fullName.length > 17 ? `${member.fullName.substring(0, 16)}.` : member.fullName}
                         </text>
@@ -591,9 +657,9 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
                         <text x="-20" y="20" className="font-sans text-[8.5px] italic fill-amber-700 dark:fill-amber-400 truncate w-[90px]">
                           {member.profession || member.locationName || 'Nội trợ'}
                         </text>
-
                         {member.isDeceased && <text x="65" y="25" className="font-sans text-[10px]" title="Đã tạ thế">🕯️</text>}
                       </g>
+                    </g>
                     );
                   })}
 

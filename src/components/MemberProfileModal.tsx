@@ -25,7 +25,8 @@ export default function MemberProfileModal({
   onUpdateMemberDirectly,
   onDeleteMember
 }: MemberProfileModalProps) {
-  const [activeTab, setActiveTab] = useState<'info' | 'relations' | 'propose' | 'album'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'relations' | 'kinship' | 'propose' | 'album'>('info');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // AI loading states
   const [isBioLoading, setIsBioLoading] = useState(false);
@@ -199,6 +200,12 @@ export default function MemberProfileModal({
             Sơ đồ quan hệ dòng phái
           </button>
           <button type="button"
+            onClick={() => setActiveTab('kinship')}
+            className={`px-4 py-3 text-xs font-semibold border-b-2 transition-all ${activeTab === 'kinship' ? 'border-amber-700 text-amber-800 dark:text-amber-400' : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-zinc-100'}`}
+          >
+            Cách Xưng Hô
+          </button>
+          <button type="button"
             onClick={() => setActiveTab('propose')}
             className={`px-4 py-3 text-xs font-semibold border-b-2 transition-all ${activeTab === 'propose' ? 'border-amber-700 text-amber-800 dark:text-amber-400' : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-zinc-100'}`}
           >
@@ -218,46 +225,6 @@ export default function MemberProfileModal({
           {/* TAB 1: INFO PANEL */}
           {activeTab === 'info' && (
             <div className="space-y-6">
-              {/* Kinship Static Table Box */}
-              <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-full text-amber-700 dark:text-amber-400">
-                    <Users className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100 mb-2">Bảng tra cứu xưng hô với thành viên này</h3>
-                    <p className="text-[11px] text-amber-700 dark:text-amber-400/80 mb-3 italic">Dành cho người trong họ tham khảo cách gọi (tùy thuộc vào chi/nhánh lớn nhỏ có thể thay đổi Bác/Chú/Cô):</p>
-                    
-                    <div className="bg-white/60 dark:bg-zinc-900/50 rounded border border-amber-100 dark:border-amber-900/20 overflow-hidden text-[11px]">
-                      <table className="w-full text-left">
-                        <tbody>
-                          <tr className="border-b border-amber-100 dark:border-zinc-800">
-                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500 w-1/3">Người Đời thứ {member.generation + 2}:</td>
-                            <td className="p-2 text-amber-800 dark:text-amber-300">Gọi là <b>Ông / Bà</b> (Ông trẻ, Bà họ)</td>
-                          </tr>
-                          <tr className="border-b border-amber-100 dark:border-zinc-800">
-                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {member.generation + 1}:</td>
-                            <td className="p-2 text-amber-800 dark:text-amber-300">
-                              <div className="mb-1">Họ nội: <b>Bác</b> (Anh/chị của cha), <b>Chú</b> (Em trai cha), <b>Cô</b> (Em gái cha), <b>Thím</b> (Vợ chú), <b>Dượng</b> (Chồng cô).</div>
-                              <div>Họ ngoại: <b>Cậu</b> (Anh/em trai mẹ), <b>Dì</b> (Chị/em gái mẹ), <b>Mợ</b> (Vợ cậu), <b>Dượng</b> (Chồng dì).</div>
-                            </td>
-                          </tr>
-                          <tr className="border-b border-amber-100 dark:border-zinc-800">
-                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {member.generation}:</td>
-                            <td className="p-2 text-amber-800 dark:text-amber-300">
-                              Gọi là <b>Anh / Chị họ</b> (Nếu cha mẹ người này lớn tuổi hơn cha mẹ bạn) hoặc <b>Em họ</b> (Nếu cha mẹ người này nhỏ tuổi hơn).
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {Math.max(1, member.generation - 1)}:</td>
-                            <td className="p-2 text-amber-800 dark:text-amber-300">Giao tiếp xưng <b>Cháu</b> (Cháu họ)</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Direct edit notice */}
               {(currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.BRANCH_LEADER) && (
@@ -900,7 +867,7 @@ export default function MemberProfileModal({
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button type="button" 
-                          onClick={() => window.open(url, '_blank')}
+                          onClick={() => setSelectedImage(url)}
                           className="px-2.5 py-1 text-[10px] bg-white text-gray-800 rounded shadow font-semibold"
                         >
                           Xem gốc
@@ -981,8 +948,73 @@ export default function MemberProfileModal({
             </div>
           )}
 
+          {/* TAB: KINSHIP PANEL */}
+          {activeTab === 'kinship' && (
+            <div className="space-y-6">
+              <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-full text-amber-700 dark:text-amber-400">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100 mb-2">Bảng tra cứu xưng hô với thành viên này</h3>
+                    <p className="text-[11px] text-amber-700 dark:text-amber-400/80 mb-3 italic">Dành cho người trong họ tham khảo cách gọi (tùy thuộc vào chi/nhánh lớn nhỏ có thể thay đổi Bác/Chú/Cô):</p>
+                    
+                    <div className="bg-white/60 dark:bg-zinc-900/50 rounded border border-amber-100 dark:border-amber-900/20 overflow-hidden text-[11px]">
+                      <table className="w-full text-left">
+                        <tbody>
+                          <tr className="border-b border-amber-100 dark:border-zinc-800">
+                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500 w-1/3">Người Đời thứ {member.generation + 2}:</td>
+                            <td className="p-2 text-amber-800 dark:text-amber-300">Gọi là <b>Ông / Bà</b> (Ông trẻ, Bà họ)</td>
+                          </tr>
+                          <tr className="border-b border-amber-100 dark:border-zinc-800">
+                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {member.generation + 1}:</td>
+                            <td className="p-2 text-amber-800 dark:text-amber-300">
+                              <div className="mb-1">Họ nội: <b>Bác</b> (Anh/chị của cha), <b>Chú</b> (Em trai cha), <b>Cô</b> (Em gái cha), <b>Thím</b> (Vợ chú), <b>Dượng</b> (Chồng cô).</div>
+                              <div>Họ ngoại: <b>Cậu</b> (Anh/em trai mẹ), <b>Dì</b> (Chị/em gái mẹ), <b>Mợ</b> (Vợ cậu), <b>Dượng</b> (Chồng dì).</div>
+                            </td>
+                          </tr>
+                          <tr className="border-b border-amber-100 dark:border-zinc-800">
+                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {member.generation}:</td>
+                            <td className="p-2 text-amber-800 dark:text-amber-300">
+                              Gọi là <b>Anh / Chị họ</b> (Nếu cha mẹ người này lớn tuổi hơn cha mẹ bạn) hoặc <b>Em họ</b> (Nếu cha mẹ người này nhỏ tuổi hơn).
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {Math.max(1, member.generation - 1)}:</td>
+                            <td className="p-2 text-amber-800 dark:text-amber-300">Giao tiếp xưng <b>Cháu</b> (Cháu họ)</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
+
+      {/* Lightbox Overlay */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-[120] bg-black/95 flex items-center justify-center p-4 animate-fade-in" onClick={() => setSelectedImage(null)}>
+          <button 
+            type="button"
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+          >
+            <X className="h-6 w-6" />
+          </button>
+          <img 
+            src={selectedImage} 
+            alt="Fullscreen" 
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
+
     </div>
   );
 }

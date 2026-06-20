@@ -33,6 +33,48 @@ export default function AdminPanel({
   const [excelPaste, setExcelPaste] = useState('');
 
   const [newMemberAvatarUrl, setNewMemberAvatarUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 150;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          setNewMemberAvatarUrl(dataUrl);
+        }
+        setIsUploading(false);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberNickname, setNewMemberNickname] = useState('');
   const [newMemberGender, setNewMemberGender] = useState<Gender>(Gender.MALE);
@@ -240,14 +282,34 @@ export default function AdminPanel({
             <form onSubmit={handleCreateMember} className="p-4 bg-gray-50 dark:bg-zinc-950/40 rounded-2xl space-y-4 max-w-2xl text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-500 font-bold mb-1">Ảnh đại diện (URL)</label>
-                  <input
-                    type="text"
-                    placeholder="Nhập link ảnh (tùy chọn)..."
-                    value={newMemberAvatarUrl}
-                    onChange={e => setNewMemberAvatarUrl(e.target.value)}
-                    className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none dark:text-zinc-100"
-                  />
+                  <label className="block text-gray-500 font-bold mb-1">Ảnh đại diện (Tải lên)</label>
+                  <div className="flex items-center gap-3">
+                    {newMemberAvatarUrl ? (
+                      <div className="relative shrink-0">
+                        <img src={newMemberAvatarUrl} alt="Avatar" className="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-zinc-700" />
+                        <button 
+                          type="button" 
+                          onClick={() => setNewMemberAvatarUrl('')}
+                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-zinc-800 border border-dashed border-gray-300 dark:border-zinc-700 flex items-center justify-center shrink-0">
+                        <UserPlus className="w-5 h-5 text-gray-400" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={isUploading}
+                        className="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 dark:file:bg-amber-900/20 dark:file:text-amber-400 transition-all cursor-pointer"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div>
