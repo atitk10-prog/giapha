@@ -503,6 +503,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
             
             if (screenY < -50 || screenY > 700) return null;
 
+            return (
               <div key={gen} 
                 className="absolute left-4 h-6 px-3 bg-amber-50 dark:bg-zinc-900 border border-amber-200 dark:border-zinc-700 rounded shadow-sm flex items-center justify-center transition-all duration-75"
                 style={{ 
