@@ -636,18 +636,14 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
                         <g transform="translate(-50, 0)">
                           <circle cx="0" cy="0" r="18" fill="#e2e8f0" className="dark:fill-zinc-800" />
                         {member.avatarUrl ? (
-                          <g transform={isRotated ? "rotate(-90)" : ""}>
-                            <image href={member.avatarUrl} x="-18" y="-18" width="36" height="36" clipPath={`url(#avatar-clip-${member.id})`} preserveAspectRatio="xMidYMid slice" />
-                          </g>
+                          <image href={member.avatarUrl} x="-18" y="-18" width="36" height="36" clipPath={`url(#avatar-clip-${member.id})`} preserveAspectRatio="xMidYMid slice" />
                         ) : (
-                          <g transform={isRotated ? "rotate(-90)" : ""}>
-                            <text x="0" y="5" textAnchor="middle" className="font-sans text-[16px] fill-gray-400 font-bold">{member.fullName.charAt(0)}</text>
-                          </g>
+                          <text x="0" y="5" textAnchor="middle" className="font-sans text-[16px] fill-gray-400 font-bold">{member.fullName.charAt(0)}</text>
                         )}
                         <defs><clipPath id={`avatar-clip-${member.id}`}><circle cx="0" cy="0" r="18" /></clipPath></defs>
                       </g>
 
-                      <g transform={isRotated ? "rotate(-90, -20, -10) translate(0, -6)" : ""}>
+                      <g>
                         <text x="-20" y="-10" className="font-sans text-xs font-bold fill-gray-900 dark:fill-zinc-100 select-none text-[11px]">
                           {member.fullName.length > 17 ? `${member.fullName.substring(0, 16)}.` : member.fullName}
                         </text>
