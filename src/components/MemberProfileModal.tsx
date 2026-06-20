@@ -61,6 +61,22 @@ export default function MemberProfileModal({
 
   // Grandparents
   const paternalGrandfather = father?.fatherId ? allMembers.find(m => m.id === father.fatherId) : null;
+  const paternalGrandmother = father?.motherId ? allMembers.find(m => m.id === father.motherId) : null;
+  const maternalGrandfather = mother?.fatherId ? allMembers.find(m => m.id === mother.fatherId) : null;
+  const maternalGrandmother = mother?.motherId ? allMembers.find(m => m.id === mother.motherId) : null;
+
+  // Aunts & Uncles
+  const paternalAuntsUncles = allMembers.filter(m => 
+    father && m.id !== father.id && 
+    ((father.fatherId && m.fatherId === father.fatherId) || (father.motherId && m.motherId === father.motherId))
+  );
+  const maternalAuntsUncles = allMembers.filter(m => 
+    mother && m.id !== mother.id && 
+    ((mother.fatherId && m.fatherId === mother.fatherId) || (mother.motherId && m.motherId === mother.motherId))
+  );
+
+  // Sub-tab state
+  const [relationSubTab, setRelationSubTab] = useState<'grandparents' | 'parents_uncles' | 'siblings' | 'children'>('parents_uncles');
 
   // New photo input mock
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
@@ -142,6 +158,32 @@ export default function MemberProfileModal({
       setDirectEditMode(false);
       alert('Đã cập nhật trực tiếp dữ liệu thành viên thành công!');
     }
+  };
+
+  const renderRelativeCard = (rel: ClanMember | null | undefined, badgeLabel: string, badgeColor: string) => {
+    if (!rel) return null;
+    return (
+      <button type="button"
+        key={rel.id}
+        onClick={() => onNavigateToMember(rel.id)}
+        className="relative p-3 border border-gray-100 dark:border-zinc-800 hover:border-amber-300 dark:hover:border-amber-700/50 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 rounded-xl bg-white dark:bg-zinc-900 flex items-center gap-3 transition-all text-left shadow-sm hover:shadow"
+      >
+        <span className={`absolute top-0 right-0 rounded-bl-lg rounded-tr-xl px-2 py-0.5 text-[9px] font-bold text-white ${badgeColor}`}>
+          {badgeLabel}
+        </span>
+        {rel.avatarUrl ? (
+          <img src={rel.avatarUrl} alt={rel.fullName} className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-zinc-700" />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-400 font-bold text-sm border border-gray-200 dark:border-zinc-700">
+            {rel.fullName.charAt(0)}
+          </div>
+        )}
+        <div className="flex-1 min-w-0 pr-4">
+          <h4 className="text-xs font-bold text-gray-900 dark:text-zinc-100 truncate">{rel.fullName}</h4>
+          <p className="text-[10px] text-gray-500 font-mono mt-0.5">Đời thứ {rel.generation} • {rel.gender === Gender.MALE ? 'Nam' : 'Nữ'}</p>
+        </div>
+      </button>
+    );
   };
 
   return (
@@ -739,47 +781,76 @@ export default function MemberProfileModal({
                 </div>
               )}
 
-              {/* Relatives Tables */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 1. Anh chị em */}
-                <div className="space-y-2.5">
-                  <span className="text-xs font-bold text-gray-500 block">Anh chị em ({siblings.length})</span>
-                  {siblings.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-2">
-                      {siblings.map(sib => (
-                        <button type="button"
-                          key={sib.id}
-                          onClick={() => onNavigateToMember(sib.id)}
-                          className="p-2 border border-gray-100 dark:border-zinc-850 hover:bg-amber-500/5 rounded-xl bg-gray-50/50 dark:bg-zinc-950 text-[11px] font-sans text-left transition-all block truncate text-gray-800 dark:text-zinc-200"
-                        >
-                          {sib.gender === Gender.MALE ? '👦' : '👧'} {sib.fullName}
-                          <span className="block text-[8px] text-gray-500 font-mono">Đời thứ {sib.generation}</span>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-xs italic text-gray-500 block">Thành viên là con độc nhất hoặc chưa ghi nhận anh chị em ruột.</span>
-                  )}
+              {/* Relatives Sub-Tabs Pill Menu */}
+              <div className="mt-6 border-t border-gray-100 dark:border-zinc-800 pt-4">
+                <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
+                  <button type="button" onClick={() => setRelationSubTab('grandparents')} className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] font-bold transition-all ${relationSubTab === 'grandparents' ? 'bg-amber-700 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-400'}`}>👴 Thượng đại (Ông Bà)</button>
+                  <button type="button" onClick={() => setRelationSubTab('parents_uncles')} className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] font-bold transition-all ${relationSubTab === 'parents_uncles' ? 'bg-amber-700 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-400'}`}>👨‍👩‍👦 Trưởng bối (Cha Mẹ, Cô dì...)</button>
+                  <button type="button" onClick={() => setRelationSubTab('siblings')} className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] font-bold transition-all ${relationSubTab === 'siblings' ? 'bg-amber-700 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-400'}`}>🧑‍🤝‍🧑 Đồng vai (Anh chị em)</button>
+                  <button type="button" onClick={() => setRelationSubTab('children')} className={`whitespace-nowrap px-4 py-2 rounded-full text-[11px] font-bold transition-all ${relationSubTab === 'children' ? 'bg-amber-700 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-400'}`}>🌱 Hậu bối (Con cái)</button>
                 </div>
 
-                {/* 2. Con cái */}
-                <div className="space-y-2.5">
-                  <span className="text-xs font-bold text-gray-500 block">Con cái hậu bối ({children.length})</span>
-                  {children.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-2">
-                      {children.map(child => (
-                        <button type="button"
-                          key={child.id}
-                          onClick={() => onNavigateToMember(child.id)}
-                          className="p-2 border border-gray-100 dark:border-zinc-850 hover:bg-amber-500/5 rounded-xl bg-gray-50/50 dark:bg-zinc-950 text-[11px] font-sans text-left transition-all block truncate text-gray-800 dark:text-zinc-200"
-                        >
-                          🌿 {child.fullName}
-                          <span className="block text-[8px] text-gray-500 font-mono">Dòng sau • Đời {child.generation}</span>
-                        </button>
-                      ))}
+                <div className="mt-4 min-h-[200px] bg-gray-50/50 dark:bg-zinc-950/50 rounded-2xl p-4 border border-gray-100 dark:border-zinc-850">
+                  {relationSubTab === 'grandparents' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {renderRelativeCard(paternalGrandfather, 'Ông Nội', 'bg-amber-800')}
+                        {renderRelativeCard(paternalGrandmother, 'Bà Nội', 'bg-amber-700')}
+                        {renderRelativeCard(maternalGrandfather, 'Ông Ngoại', 'bg-blue-800')}
+                        {renderRelativeCard(maternalGrandmother, 'Bà Ngoại', 'bg-blue-700')}
+                      </div>
+                      {!paternalGrandfather && !paternalGrandmother && !maternalGrandfather && !maternalGrandmother && (
+                        <p className="text-xs text-gray-500 italic text-center py-6">Chưa có thông tin về thế hệ Ông Bà.</p>
+                      )}
                     </div>
-                  ) : (
-                    <span className="text-xs italic text-gray-500 block">Chưa ghi nhận hậu duệ (Con cái).</span>
+                  )}
+
+                  {relationSubTab === 'parents_uncles' && (
+                    <div className="space-y-6">
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">Thân sinh (Cha mẹ)</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {renderRelativeCard(father, 'Cha', 'bg-amber-600')}
+                          {renderRelativeCard(mother, 'Mẹ', 'bg-pink-600')}
+                        </div>
+                        {!father && !mother && (
+                          <p className="text-xs text-gray-500 italic text-center py-2">Chưa xác định được thông tin Cha Mẹ.</p>
+                        )}
+                      </div>
+                      
+                      {(paternalAuntsUncles.length > 0 || maternalAuntsUncles.length > 0) && (
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block mt-2">Cô Dì Chú Bác (Anh chị em của Cha mẹ)</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {paternalAuntsUncles.map(rel => renderRelativeCard(rel, rel.gender === Gender.MALE ? 'Bác/Chú (Nội)' : 'Bác/Cô (Nội)', 'bg-amber-700/80'))}
+                            {maternalAuntsUncles.map(rel => renderRelativeCard(rel, rel.gender === Gender.MALE ? 'Bác/Cậu (Ngoại)' : 'Bác/Dì (Ngoại)', 'bg-blue-700/80'))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {relationSubTab === 'siblings' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {renderRelativeCard(member, 'Bản thân', 'bg-green-600')}
+                        {siblings.map(rel => renderRelativeCard(rel, rel.gender === Gender.MALE ? 'Anh/Em trai' : 'Chị/Em gái', 'bg-teal-600'))}
+                      </div>
+                      {siblings.length === 0 && (
+                        <p className="text-xs text-gray-500 italic text-center py-6 mt-4">Không ghi nhận anh chị em ruột.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {relationSubTab === 'children' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {children.map(rel => renderRelativeCard(rel, rel.gender === Gender.MALE ? 'Con trai' : 'Con gái', 'bg-purple-600'))}
+                      </div>
+                      {children.length === 0 && (
+                        <p className="text-xs text-gray-500 italic text-center py-6">Chưa ghi nhận hậu duệ (Con cái).</p>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
