@@ -669,7 +669,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
                           {member.dob ? `SN: ${member.dob}` : 'Khuyết'} {member.isDeceased ? `- Mất: ${member.dod}` : ''}
                         </text>
                         <text x="-20" y="20" className="font-sans text-[8.5px] italic fill-amber-700 dark:fill-amber-400 truncate w-[90px]">
-                          {member.profession || member.locationName || 'Nội trợ'}
+                          {member.profession || member.locationName || ''}
                         </text>
                         {member.isDeceased && <text x="65" y="25" className="font-sans text-[10px]" title="Đã tạ thế">🕯️</text>}
                       </g>

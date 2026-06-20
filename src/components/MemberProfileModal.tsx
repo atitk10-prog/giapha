@@ -116,6 +116,22 @@ export default function MemberProfileModal({
     nephewsNieces = nephewsNieces.concat(sibChildren.map(c => ({ ...c, _parentName: sib.fullName, _addressing: addressing })));
   });
 
+  // Cousin Nephews & Nieces (Cháu họ - con của anh chị em họ)
+  let cousinNephewsNieces: (ClanMember & { _parentName: string, _addressing: string })[] = [];
+  const processCousinChildren = (cousinList: typeof paternalCousins) => {
+    cousinList.forEach(cousin => {
+      const cousinChildren = allMembers.filter(m => m.fatherId === cousin.id || m.motherId === cousin.id);
+      let addressing = 'Bác họ'; // Defaults to Bác họ if cousin is younger branch (Em họ)
+      if (cousin._isOlderParent) { // Cousin is Anh/Chị họ
+        if (member.gender === Gender.MALE) addressing = cousin.gender === Gender.MALE ? 'Chú họ' : 'Cậu họ';
+        else addressing = cousin.gender === Gender.MALE ? 'Cô họ' : 'Dì họ';
+      }
+      cousinNephewsNieces = cousinNephewsNieces.concat(cousinChildren.map(c => ({ ...c, _parentName: cousin.fullName, _addressing: addressing })));
+    });
+  };
+  processCousinChildren(paternalCousins);
+  processCousinChildren(maternalCousins);
+
   // Sub-tab state
   const [relationSubTab, setRelationSubTab] = useState<'grandparents' | 'parents_uncles' | 'siblings' | 'children'>('parents_uncles');
 
@@ -1001,15 +1017,24 @@ export default function MemberProfileModal({
 
                       {nephewsNieces.length > 0 && (
                         <div>
-                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block mt-4">Cháu (Con của anh chị em ruột) ({nephewsNieces.length})</span>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block mt-4">Cháu ruột (Con của anh chị em ruột) ({nephewsNieces.length})</span>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {nephewsNieces.map(rel => renderRelativeCard(rel, `Cháu (gọi b.bằng ${rel._addressing})`, 'bg-pink-600'))}
+                            {nephewsNieces.map(rel => renderRelativeCard(rel, `Cháu ruột (gọi b.bằng ${rel._addressing})`, 'bg-pink-600'))}
                           </div>
                         </div>
                       )}
 
-                      {descendantsStructured.length === 0 && nephewsNieces.length === 0 && (
-                        <p className="text-xs text-gray-500 italic text-center py-6">Chưa ghi nhận hậu duệ hoặc cháu ruột.</p>
+                      {cousinNephewsNieces.length > 0 && (
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block mt-4">Cháu họ (Con của anh chị em họ) ({cousinNephewsNieces.length})</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {cousinNephewsNieces.map(rel => renderRelativeCard(rel, `Cháu họ (gọi b.bằng ${rel._addressing})`, 'bg-pink-700/80'))}
+                          </div>
+                        </div>
+                      )}
+
+                      {descendantsStructured.length === 0 && nephewsNieces.length === 0 && cousinNephewsNieces.length === 0 && (
+                        <p className="text-xs text-gray-500 italic text-center py-6">Chưa ghi nhận hậu duệ hoặc cháu.</p>
                       )}
                     </div>
                   )}
