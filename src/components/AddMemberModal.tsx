@@ -121,8 +121,8 @@ export default function AddMemberModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden border border-gray-100 dark:border-zinc-800 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl sm:rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden border border-gray-100 dark:border-zinc-800 flex flex-col max-h-[95dvh] sm:max-h-[90vh]">
         <div className="flex items-center justify-between p-5 bg-gray-50/50 dark:bg-zinc-800/50 border-b border-gray-100 dark:border-zinc-800 shrink-0">
           <h3 className="text-lg font-bold text-gray-900 dark:text-zinc-100 flex items-center gap-2">
             <Users className="w-5 h-5 text-amber-600" />

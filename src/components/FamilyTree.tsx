@@ -485,7 +485,7 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
       {/* SVG Canvas View */}
       <div 
         ref={containerRef}
-        className={`relative overflow-hidden w-full ${isFullscreen ? 'h-screen' : 'h-[650px]'} cursor-grab ${isDragging ? 'cursor-grabbing' : ''}`}
+        className={`relative overflow-hidden w-full ${isFullscreen ? 'h-screen' : 'h-[650px]'} cursor-grab ${isDragging ? 'cursor-grabbing' : ''} touch-none`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

@@ -59,6 +59,21 @@ export default function MemberProfileModal({
      (member.motherId && m.motherId === member.motherId))
   );
 
+  // Helper: Check if member A is older than member B
+  const isOlder = (a: ClanMember, b: ClanMember): boolean => {
+    if (a.birthOrder !== undefined && b.birthOrder !== undefined) {
+      return a.birthOrder < b.birthOrder;
+    }
+    if (a.dob && b.dob) {
+      const yearA = parseInt(a.dob.match(/\d{4}/)?.[0] || '0');
+      const yearB = parseInt(b.dob.match(/\d{4}/)?.[0] || '0');
+      if (yearA > 0 && yearB > 0 && yearA !== yearB) return yearA < yearB;
+    }
+    if (a.birthOrder === 1) return true;
+    if (b.birthOrder === 1) return false;
+    return false; // Default
+  };
+
   // Grandparents
   const paternalGrandfather = father?.fatherId ? allMembers.find(m => m.id === father.fatherId) : null;
   const paternalGrandmother = father?.motherId ? allMembers.find(m => m.id === father.motherId) : null;
@@ -75,20 +90,71 @@ export default function MemberProfileModal({
     ((mother.fatherId && m.fatherId === mother.fatherId) || (mother.motherId && m.motherId === mother.motherId))
   );
 
+  // Cousins (Anh chị em họ)
+  const getCousins = (auntsUncles: ClanMember[], parent: ClanMember | null) => {
+    let cousins: (ClanMember & { _parentName: string, _isOlderParent: boolean })[] = [];
+    auntsUncles.forEach(u => {
+      const uChildren = allMembers.filter(m => m.fatherId === u.id || m.motherId === u.id);
+      const isUOlder = parent ? isOlder(u, parent) : false;
+      cousins = cousins.concat(uChildren.map(c => ({ ...c, _parentName: u.fullName, _isOlderParent: isUOlder })));
+    });
+    return cousins;
+  };
+  const paternalCousins = getCousins(paternalAuntsUncles, father);
+  const maternalCousins = getCousins(maternalAuntsUncles, mother);
+
+  // Nephews & Nieces (Cháu ruột - con của anh chị em)
+  let nephewsNieces: (ClanMember & { _parentName: string, _addressing: string })[] = [];
+  siblings.forEach(sib => {
+    const sibChildren = allMembers.filter(m => m.fatherId === sib.id || m.motherId === sib.id);
+    const isSibOlder = isOlder(sib, member);
+    let addressing = 'Bác'; // Defaults to Bác if sib is younger (Em)
+    if (isSibOlder) {
+      if (member.gender === Gender.MALE) addressing = sib.gender === Gender.MALE ? 'Chú' : 'Cậu';
+      else addressing = sib.gender === Gender.MALE ? 'Cô' : 'Dì';
+    }
+    nephewsNieces = nephewsNieces.concat(sibChildren.map(c => ({ ...c, _parentName: sib.fullName, _addressing: addressing })));
+  });
+
   // Sub-tab state
   const [relationSubTab, setRelationSubTab] = useState<'grandparents' | 'parents_uncles' | 'siblings' | 'children'>('parents_uncles');
 
-  // Descendants recursive search
-  const getDescendants = (parentId: string, currentLevel: number): (ClanMember & { _relationLevel: number })[] => {
-    const directChildren = allMembers.filter(m => m.fatherId === parentId || m.motherId === parentId);
-    let allDesc: (ClanMember & { _relationLevel: number })[] = [];
-    for (const child of directChildren) {
-      allDesc.push({ ...child, _relationLevel: currentLevel });
-      allDesc = allDesc.concat(getDescendants(child.id, currentLevel + 1));
-    }
+  // Descendants recursive search with lineage and sorting
+  type Descendant = ClanMember & { 
+    _relationLevel: number; 
+    _pathStr: string;
+    _parentGender?: Gender;
+    _parentName?: string;
+  };
+
+  const getDescendantsStructured = (parentId: string, currentLevel: number, pathPrefix: string, parentGender?: Gender, parentName?: string): Descendant[] => {
+    let directChildren = allMembers.filter(m => m.fatherId === parentId || m.motherId === parentId);
+    // Sort by birthOrder
+    directChildren.sort((a, b) => (a.birthOrder || 99) - (b.birthOrder || 99));
+
+    let allDesc: Descendant[] = [];
+    directChildren.forEach((child, idx) => {
+      const childPath = pathPrefix ? `${pathPrefix}.${child.birthOrder || 99}_${idx}` : `${child.birthOrder || 99}_${idx}`;
+      allDesc.push({ 
+        ...child, 
+        _relationLevel: currentLevel, 
+        _pathStr: childPath, 
+        _parentGender: parentGender,
+        _parentName: parentName
+      });
+      allDesc = allDesc.concat(getDescendantsStructured(child.id, currentLevel + 1, childPath, child.gender, child.fullName));
+    });
     return allDesc;
   };
-  const descendants = getDescendants(member.id, 1);
+  
+  const descendantsStructured = getDescendantsStructured(member.id, 1, '', member.gender, member.fullName);
+
+  // Group descendants
+  const childrenList = descendantsStructured.filter(d => d._relationLevel === 1);
+  const grandchildrenPaternal = descendantsStructured.filter(d => d._relationLevel === 2 && d._parentGender === Gender.MALE);
+  const grandchildrenMaternal = descendantsStructured.filter(d => d._relationLevel === 2 && d._parentGender === Gender.FEMALE);
+  const greatGrandchildren = descendantsStructured.filter(d => d._relationLevel === 3);
+  const otherDescendants = descendantsStructured.filter(d => d._relationLevel > 3);
 
   // New photo input mock
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
@@ -834,8 +900,16 @@ export default function MemberProfileModal({
                         <div>
                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block mt-2">Cô Dì Chú Bác (Anh chị em của Cha mẹ)</span>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {paternalAuntsUncles.map(rel => renderRelativeCard(rel, rel.gender === Gender.MALE ? 'Bác/Chú (Nội)' : 'Bác/Cô (Nội)', 'bg-amber-700/80'))}
-                            {maternalAuntsUncles.map(rel => renderRelativeCard(rel, rel.gender === Gender.MALE ? 'Bác/Cậu (Ngoại)' : 'Bác/Dì (Ngoại)', 'bg-blue-700/80'))}
+                            {paternalAuntsUncles.map(rel => {
+                              const isRelOlder = father ? isOlder(rel, father) : false;
+                              let label = isRelOlder ? (rel.gender === Gender.MALE ? 'Bác trai (Nội)' : 'Bác gái (Nội)') : (rel.gender === Gender.MALE ? 'Chú' : 'Cô');
+                              return renderRelativeCard(rel, label, isRelOlder ? 'bg-amber-800' : 'bg-amber-700/80');
+                            })}
+                            {maternalAuntsUncles.map(rel => {
+                              const isRelOlder = mother ? isOlder(rel, mother) : false;
+                              let label = isRelOlder ? (rel.gender === Gender.MALE ? 'Bác trai (Ngoại)' : 'Bác gái (Ngoại)') : (rel.gender === Gender.MALE ? 'Cậu' : 'Dì');
+                              return renderRelativeCard(rel, label, isRelOlder ? 'bg-blue-800' : 'bg-blue-700/80');
+                            })}
                           </div>
                         </div>
                       )}
@@ -843,37 +917,99 @@ export default function MemberProfileModal({
                   )}
 
                   {relationSubTab === 'siblings' && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {renderRelativeCard(member, 'Bản thân', 'bg-green-600')}
-                        {siblings.map(rel => renderRelativeCard(rel, rel.gender === Gender.MALE ? 'Anh/Em trai' : 'Chị/Em gái', 'bg-teal-600'))}
+                    <div className="space-y-6">
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">Anh chị em ruột ({siblings.length})</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {renderRelativeCard(member, 'Bản thân', 'bg-green-600')}
+                          {siblings.map(rel => {
+                            const isRelOlder = isOlder(rel, member);
+                            let label = isRelOlder ? (rel.gender === Gender.MALE ? 'Anh trai' : 'Chị gái') : (rel.gender === Gender.MALE ? 'Em trai' : 'Em gái');
+                            return renderRelativeCard(rel, label, 'bg-teal-600');
+                          })}
+                        </div>
                       </div>
-                      {siblings.length === 0 && (
-                        <p className="text-xs text-gray-500 italic text-center py-6 mt-4">Không ghi nhận anh chị em ruột.</p>
+
+                      {(paternalCousins.length > 0 || maternalCousins.length > 0) && (
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block mt-4">Anh chị em họ (Con của Cô Dì Chú Bác)</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {paternalCousins.map(rel => {
+                              let label = (rel._isOlderParent ? (rel.gender === Gender.MALE ? 'Anh họ' : 'Chị họ') : (rel.gender === Gender.MALE ? 'Em họ' : 'Em họ')) + ` (Con ${rel._parentName.split(' ').pop()})`;
+                              return renderRelativeCard(rel, label, 'bg-emerald-700/80');
+                            })}
+                            {maternalCousins.map(rel => {
+                              let label = (rel._isOlderParent ? (rel.gender === Gender.MALE ? 'Anh họ' : 'Chị họ') : (rel.gender === Gender.MALE ? 'Em họ' : 'Em họ')) + ` (Con ${rel._parentName.split(' ').pop()})`;
+                              return renderRelativeCard(rel, label, 'bg-cyan-700/80');
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {siblings.length === 0 && paternalCousins.length === 0 && maternalCousins.length === 0 && (
+                        <p className="text-xs text-gray-500 italic text-center py-6 mt-4">Không ghi nhận anh chị em ruột hoặc anh chị em họ.</p>
                       )}
                     </div>
                   )}
 
                   {relationSubTab === 'children' && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {descendants.map(rel => {
-                          let relationLabel = '';
-                          if (rel._relationLevel === 1) relationLabel = rel.gender === Gender.MALE ? 'Con trai' : 'Con gái';
-                          else if (rel._relationLevel === 2) relationLabel = rel.gender === Gender.MALE ? 'Cháu trai' : 'Cháu gái';
-                          else if (rel._relationLevel === 3) relationLabel = rel.gender === Gender.MALE ? 'Chắt trai' : 'Chắt gái';
-                          else if (rel._relationLevel === 4) relationLabel = rel.gender === Gender.MALE ? 'Chút trai' : 'Chút gái';
-                          else relationLabel = 'Hậu duệ Đời ' + rel.generation;
-                          
-                          let badgeColor = 'bg-purple-600';
-                          if (rel._relationLevel === 2) badgeColor = 'bg-purple-500';
-                          if (rel._relationLevel >= 3) badgeColor = 'bg-purple-400';
+                    <div className="space-y-6">
+                      {childrenList.length > 0 && (
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">Thế hệ F1: Con cái ({childrenList.length})</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {childrenList.map(rel => renderRelativeCard(rel, rel.gender === Gender.MALE ? 'Con trai' : 'Con gái', 'bg-purple-700'))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {grandchildrenPaternal.length > 0 && (
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block mt-2">Thế hệ F2: Cháu Nội ({grandchildrenPaternal.length})</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {grandchildrenPaternal.map(rel => renderRelativeCard(rel, (rel.gender === Gender.MALE ? 'Cháu nội' : 'Cháu nội') + (rel._parentName ? ` (Con ${rel._parentName.split(' ').pop()})` : ''), 'bg-purple-600'))}
+                          </div>
+                        </div>
+                      )}
 
-                          return renderRelativeCard(rel, relationLabel, badgeColor);
-                        })}
-                      </div>
-                      {descendants.length === 0 && (
-                        <p className="text-xs text-gray-500 italic text-center py-6">Chưa ghi nhận hậu duệ (Con cháu).</p>
+                      {grandchildrenMaternal.length > 0 && (
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block mt-2">Thế hệ F2: Cháu Ngoại ({grandchildrenMaternal.length})</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {grandchildrenMaternal.map(rel => renderRelativeCard(rel, (rel.gender === Gender.MALE ? 'Cháu ngoại' : 'Cháu ngoại') + (rel._parentName ? ` (Con ${rel._parentName.split(' ').pop()})` : ''), 'bg-indigo-600'))}
+                          </div>
+                        </div>
+                      )}
+
+                      {greatGrandchildren.length > 0 && (
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block mt-2">Thế hệ F3: Chắt ({greatGrandchildren.length})</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {greatGrandchildren.map(rel => renderRelativeCard(rel, (rel.gender === Gender.MALE ? 'Chắt' : 'Chắt') + (rel._parentName ? ` (Con ${rel._parentName.split(' ').pop()})` : ''), 'bg-purple-500'))}
+                          </div>
+                        </div>
+                      )}
+
+                      {otherDescendants.length > 0 && (
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block mt-2">Thế hệ F4+: Chút, Chít... ({otherDescendants.length})</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {otherDescendants.map(rel => renderRelativeCard(rel, 'Hậu duệ F' + rel._relationLevel, 'bg-purple-400'))}
+                          </div>
+                        </div>
+                      )}
+
+                      {nephewsNieces.length > 0 && (
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block mt-4">Cháu (Con của anh chị em ruột) ({nephewsNieces.length})</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {nephewsNieces.map(rel => renderRelativeCard(rel, `Cháu (gọi b.bằng ${rel._addressing})`, 'bg-pink-600'))}
+                          </div>
+                        </div>
+                      )}
+
+                      {descendantsStructured.length === 0 && nephewsNieces.length === 0 && (
+                        <p className="text-xs text-gray-500 italic text-center py-6">Chưa ghi nhận hậu duệ hoặc cháu ruột.</p>
                       )}
                     </div>
                   )}
@@ -1056,32 +1192,51 @@ export default function MemberProfileModal({
                     <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100 mb-2">Bảng tra cứu xưng hô với thành viên này</h3>
                     <p className="text-[11px] text-amber-700 dark:text-amber-400/80 mb-3 italic">Dành cho người trong họ tham khảo cách gọi (tùy thuộc vào chi/nhánh lớn nhỏ có thể thay đổi Bác/Chú/Cô):</p>
                     
-                    <div className="bg-white/60 dark:bg-zinc-900/50 rounded border border-amber-100 dark:border-amber-900/20 overflow-hidden text-[11px]">
-                      <table className="w-full text-left">
-                        <tbody>
-                          <tr className="border-b border-amber-100 dark:border-zinc-800">
-                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500 w-1/3">Người Đời thứ {member.generation + 2}:</td>
-                            <td className="p-2 text-amber-800 dark:text-amber-300">Gọi là <b>Ông / Bà</b> (Ông trẻ, Bà họ)</td>
-                          </tr>
-                          <tr className="border-b border-amber-100 dark:border-zinc-800">
-                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {member.generation + 1}:</td>
-                            <td className="p-2 text-amber-800 dark:text-amber-300">
-                              <div className="mb-1">Họ nội: <b>Bác</b> (Anh/chị của cha), <b>Chú</b> (Em trai cha), <b>Cô</b> (Em gái cha), <b>Thím</b> (Vợ chú), <b>Dượng</b> (Chồng cô).</div>
-                              <div>Họ ngoại: <b>Cậu</b> (Anh/em trai mẹ), <b>Dì</b> (Chị/em gái mẹ), <b>Mợ</b> (Vợ cậu), <b>Dượng</b> (Chồng dì).</div>
-                            </td>
-                          </tr>
-                          <tr className="border-b border-amber-100 dark:border-zinc-800">
-                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {member.generation}:</td>
-                            <td className="p-2 text-amber-800 dark:text-amber-300">
-                              Gọi là <b>Anh / Chị họ</b> (Nếu cha mẹ người này lớn tuổi hơn cha mẹ bạn) hoặc <b>Em họ</b> (Nếu cha mẹ người này nhỏ tuổi hơn).
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="p-2 bg-amber-50/50 dark:bg-zinc-900/80 text-gray-500">Người Đời thứ {Math.max(1, member.generation - 1)}:</td>
-                            <td className="p-2 text-amber-800 dark:text-amber-300">Giao tiếp xưng <b>Cháu</b> (Cháu họ)</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                    <div className="bg-white/60 dark:bg-zinc-900/50 rounded border border-amber-100 dark:border-amber-900/20 overflow-hidden text-[11px] p-3 space-y-4">
+                      
+                      <div>
+                        <h4 className="font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 p-1.5 rounded">
+                          1. Nếu bạn thuộc Đời thứ {member.generation + 1} (Hậu bối cấp 1):
+                        </h4>
+                        <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-700 dark:text-zinc-300">
+                          <li>Nếu người này là <b>Anh/Chị ruột</b> của cha bạn ➔ Gọi là <b>Bác</b> (Bác trai / Bác gái).</li>
+                          <li>Nếu người này là <b>Em trai</b> của cha bạn ➔ Gọi là <b>Chú</b> (Vợ của chú gọi là <b>Thím</b>).</li>
+                          <li>Nếu người này là <b>Em gái</b> của cha bạn ➔ Gọi là <b>Cô</b> (Chồng của cô gọi là <b>Dượng</b>).</li>
+                          <li>Nếu người này là <b>Anh/Em trai</b> của mẹ bạn ➔ Gọi là <b>Cậu</b> (Vợ của cậu gọi là <b>Mợ</b>).</li>
+                          <li>Nếu người này là <b>Chị/Em gái</b> của mẹ bạn ➔ Gọi là <b>Dì</b> (Chồng của dì gọi là <b>Dượng</b>).</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 p-1.5 rounded">
+                          2. Nếu bạn thuộc Đời thứ {member.generation} (Cùng đời - Đồng vai):
+                        </h4>
+                        <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-700 dark:text-zinc-300">
+                          <li>Nếu cha mẹ của bạn là <b>Em</b> của cha mẹ người này ➔ Gọi người này là <b>Anh / Chị</b>.</li>
+                          <li>Nếu cha mẹ của bạn là <b>Anh/Chị</b> của cha mẹ người này ➔ Gọi người này là <b>Em</b>.</li>
+                          <li className="text-gray-500 italic mt-1 list-none">Lưu ý: Vai vế anh em (con chú con bác, con cô con cậu, con dì) phụ thuộc vào thứ bậc của cha mẹ, không tính theo tuổi tác thực tế của bản thân.</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 p-1.5 rounded">
+                          3. Nếu bạn thuộc Đời thứ {member.generation + 2} (Hậu bối cấp 2):
+                        </h4>
+                        <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-700 dark:text-zinc-300">
+                          <li>Người này cùng nhánh Nội ➔ Gọi là <b>Ông nội / Bà nội</b> (hoặc Ông trẻ / Bà trẻ tùy tuổi).</li>
+                          <li>Người này cùng nhánh Ngoại ➔ Gọi là <b>Ông ngoại / Bà ngoại</b>.</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 p-1.5 rounded">
+                          4. Nếu bạn thuộc Đời thứ {Math.max(1, member.generation - 1)} (Trưởng bối):
+                        </h4>
+                        <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-700 dark:text-zinc-300">
+                          <li>Giao tiếp xưng hô gọi người này là <b>Cháu</b> (Cháu đích tôn, cháu họ...).</li>
+                        </ul>
+                      </div>
+
                     </div>
                   </div>
                 </div>
