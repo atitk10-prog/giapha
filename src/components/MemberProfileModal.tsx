@@ -1117,62 +1117,75 @@ export default function MemberProfileModal({
               {/* Add Photo via Local Upload */}
               <div className="p-4 bg-gray-50 dark:bg-zinc-950 border border-gray-150 dark:border-zinc-850 rounded-2xl max-w-md space-y-2">
                 <span className="text-xs font-bold text-gray-700 dark:text-zinc-300 flex items-center gap-1">
-                  <ImageIcon className="h-4 w-4 text-amber-700" /> Tải lên ảnh kỷ niệm từ máy tính
+                  <ImageIcon className="h-4 w-4 text-amber-700" /> Tải lên ảnh kỷ niệm chất lượng cao
                 </span>
-                <p className="text-[10px] text-gray-500">Hình cưới, hình gia đình chung vui giỗ chạp sẽ tự động nén thu gọn và bảo lưu truyền thụ.</p>
+                <p className="text-[10px] text-gray-500">Hình cưới, hình gia đình sẽ được tự động đồng bộ lên thư mục Tàng Thư Gia Phả (Google Drive) để giữ nguyên độ sắc nét.</p>
                 
                 <div className="flex gap-2 items-center">
                   <input 
                     type="file" 
                     accept="image/*"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
 
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        const img = new Image();
-                        img.onload = () => {
-                          const canvas = document.createElement('canvas');
-                          const MAX_SIZE = 300; // Shrink to 300px to avoid 50k char limit in Google Sheets
-                          let width = img.width;
-                          let height = img.height;
+                      // Khóa input và báo đang tải
+                      e.target.disabled = true;
+                      const originalTitle = document.title;
+                      document.title = "Đang tải ảnh lên Drive...";
 
-                          if (width > height) {
-                            if (width > MAX_SIZE) {
-                              height *= MAX_SIZE / width;
-                              width = MAX_SIZE;
-                            }
-                          } else {
-                            if (height > MAX_SIZE) {
-                              width *= MAX_SIZE / height;
-                              height = MAX_SIZE;
-                            }
+                      const GAS_URL = "https://script.google.com/macros/s/AKfycbxuzRowCOyQDJ-nUfMDSKU187secrBdkk34qG7-7MwfZ9IMowT6azAeYFZpoOtxZjSm/exec";
+                      const FOLDER_ID = "1i75qUZgPdIaGvAyCUfbeARtFadjHTLy6";
+
+                      const reader = new FileReader();
+                      reader.onload = async (event) => {
+                        try {
+                          const base64Data = (event.target?.result as string).split(',')[1];
+                          const payload = {
+                            filename: `Album_${member.id}_${Date.now()}_${file.name}`,
+                            mimetype: file.type || 'image/jpeg',
+                            data: base64Data,
+                            folderId: FOLDER_ID
+                          };
+
+                          const res = await fetch(GAS_URL, {
+                            method: "POST",
+                            body: JSON.stringify(payload),
+                            headers: { "Content-Type": "text/plain;charset=utf-8" }
+                          });
+                          const text = await res.text();
+                          let data;
+                          try {
+                            data = JSON.parse(text);
+                          } catch (err) {
+                            throw new Error("Lỗi đọc dữ liệu từ máy chủ");
                           }
 
-                          canvas.width = width;
-                          canvas.height = height;
-                          const ctx = canvas.getContext('2d');
-                          if (ctx) {
-                            ctx.drawImage(img, 0, 0, width, height);
-                            const dataUrl = canvas.toDataURL('image/jpeg', 0.5); // Lower quality to 0.5
-                            
+                          if (data.success) {
+                            const dataUrl = data.url; // Use Drive URL directly
                             if (onUpdateMemberDirectly) {
                               const album = member.album ? [...member.album] : [];
                               album.push(dataUrl);
                               onUpdateMemberDirectly({ ...member, album });
-                              alert('Đã tải đính kèm ảnh kỷ niệm thành công!');
+                              alert('Đã tải đính kèm ảnh kỷ niệm chất lượng cao lên Tàng Thư thành công!');
                             } else {
                               onProposeEdit(member.id, 'album_append', 'Trống', dataUrl);
                               alert('Ảnh kỷ niệm đã được đẩy lên đề xuất phê chuẩn.');
                             }
+                          } else {
+                            throw new Error(data.error || "Lỗi tải lên GAS");
                           }
-                        };
-                        img.src = event.target?.result as string;
+                        } catch (err: any) {
+                          alert("Lỗi khi tải ảnh: " + err.message);
+                        } finally {
+                          e.target.disabled = false;
+                          e.target.value = '';
+                          document.title = originalTitle;
+                        }
                       };
                       reader.readAsDataURL(file);
                     }}
-                    className="w-full text-[11px] text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 dark:file:bg-amber-900/20 dark:file:text-amber-400 transition-all cursor-pointer"
+                    className="w-full text-[11px] text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 disabled:opacity-50 dark:file:bg-amber-900/20 dark:file:text-amber-400 transition-all cursor-pointer"
                   />
                 </div>
               </div>
