@@ -503,7 +503,6 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
             
             if (screenY < -50 || screenY > 700) return null;
 
-            return (
               <div key={gen} 
                 className="absolute left-4 h-6 px-3 bg-amber-50 dark:bg-zinc-900 border border-amber-200 dark:border-zinc-700 rounded shadow-sm flex items-center justify-center transition-all duration-75"
                 style={{ 
@@ -513,8 +512,13 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
                   opacity: filterGeneration !== 'ALL' && filterGeneration !== String(gen) ? 0.15 : 0.9
                 }}
               >
-                <span className="text-amber-800 dark:text-amber-400 font-sans text-[11px] font-bold">
-                  Thế Hệ Đời thứ {gen}
+                <span className="text-amber-800 dark:text-amber-400 font-sans text-[11px] font-bold whitespace-nowrap">
+                  {isRotated ? `Đời ${gen}` : (
+                    <>
+                      <span className="hidden sm:inline">Thế hệ Đời thứ {gen}</span>
+                      <span className="sm:hidden">Đời {gen}</span>
+                    </>
+                  )}
                 </span>
               </div>
             );
@@ -645,7 +649,20 @@ export default function FamilyTree({ members, onSelectMember, selectedMemberId, 
 
                       <g>
                         <text x="-20" y="-10" className="font-sans text-xs font-bold fill-gray-900 dark:fill-zinc-100 select-none text-[11px]">
-                          {member.fullName.length > 17 ? `${member.fullName.substring(0, 16)}.` : member.fullName}
+                          {(() => {
+                            const fullName = member.fullName;
+                            if (fullName.length <= 17) return fullName;
+                            const parts = fullName.split(' ');
+                            if (parts.length <= 2) return `${fullName.substring(0, 15)}...`;
+                            const first = parts[0];
+                            const last = parts[parts.length - 1];
+                            let middle = '';
+                            for (let i = 1; i < parts.length - 1; i++) {
+                              middle += parts[i].charAt(0).toUpperCase() + '.';
+                            }
+                            const abbreviated = `${first} ${middle} ${last}`;
+                            return abbreviated.length > 17 ? `${first} ${last}`.substring(0, 17) : abbreviated;
+                          })()}
                         </text>
                         <text x="-20" y="5" className="font-sans text-[9px] fill-gray-600 dark:fill-zinc-400">
                           {member.dob ? `SN: ${member.dob}` : 'Khuyết'} {member.isDeceased ? `- Mất: ${member.dod}` : ''}
